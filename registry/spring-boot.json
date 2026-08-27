@@ -1,0 +1,71 @@
+{
+  "stack": "spring-boot",
+  "display_name": "Spring Boot (Java)",
+  "category": "backend",
+  "detection": {
+    "files": ["pom.xml", "build.gradle", "build.gradle.kts"],
+    "markers": ["spring-boot-starter", "org.springframework.boot", "@SpringBootApplication"]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "LambdaTest/agent-skills#junit-5-skill",
+      "owner": "TestMu AI (formerly LambdaTest)",
+      "owner_kind": "vendor",
+      "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill junit-5-skill",
+      "covers": ["junit-5-authoring", "parameterized-tests", "lifecycle-annotations"],
+      "does_not_cover": ["test-strategy", "spring-context-testing", "architecture"],
+      "source_url": "https://github.com/LambdaTest/agent-skills",
+      "notes": "Uses the agentskillsforall CLI, not the skills CLI."
+    },
+    {
+      "id": "Amplicode/spring-skills",
+      "owner": "Amplicode and Spring AIO",
+      "owner_kind": "community",
+      "install": null,
+      "covers": ["existing-app-exploration", "spring-data-model-changes", "dtos-and-mappers", "rest-controllers", "spring-security-configuration"],
+      "does_not_cover": ["test-strategy", "architecture-review"],
+      "source_url": "https://github.com/Amplicode/spring-skills",
+      "needs_verification": true,
+      "notes": "Not published by the Spring team. The install command was not confirmed on 2026-08-27. Present it as a community option with that caveat stated out loud, never as the default."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "framework-team-skill",
+      "why_it_matters": "No skill collection published by the Spring team was found on 2026-08-27. This is the largest gap in the registry: Spring Boot is a heavily convention-driven framework, exactly the kind where a framework-team skill pays the most.",
+      "filled_by": null,
+      "fallback": "The mentor works from the codebase and consults Spring documentation on demand, and states plainly that no framework-team skill is available. If you find one, open an issue - see CONTRIBUTING.md."
+    },
+    {
+      "gap": "test-strategy",
+      "why_it_matters": "@SpringBootTest is the path of least resistance and boots the whole context for every test. Suites built that way get slow enough that people stop running them, which is worse than having fewer tests.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/quality-gate.md, and pushes tests down to plain unit tests and slice tests (@WebMvcTest, @DataJpaTest) unless full-context wiring is the thing under test."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "slice", "integration", "e2e"],
+    "commands": {
+      "full_suite": "./mvnw test",
+      "full_suite_gradle": "./gradlew test",
+      "verify": "./mvnw verify",
+      "build": "./mvnw package -DskipTests"
+    },
+    "notes": "Pick the Maven or Gradle command by which wrapper exists in the repository; never run both. Slice tests (@WebMvcTest, @DataJpaTest) are the layer this stack most often skips and most needs."
+  },
+  "growth_thresholds": {
+    "split_controller": "a controller exceeds 10 endpoints",
+    "extract_service_layer": "a controller method exceeds 30 lines, which means business logic has leaked into the transport layer",
+    "split_service": "a service exceeds 5 constructor-injected dependencies",
+    "split_package": "a package exceeds 15 classes"
+  },
+  "dead_code_risks": [
+    "Beans instantiated by component scan and never imported by name",
+    "Classes referenced only from application.yml or application.properties",
+    "JPA entities discovered by package scan",
+    "Anything reachable only by reflection, including Jackson serialization targets",
+    "Flyway or Liquibase migration files discovered by directory scan",
+    "Beans activated by a @Profile or @ConditionalOnProperty that is currently off"
+  ]
+}

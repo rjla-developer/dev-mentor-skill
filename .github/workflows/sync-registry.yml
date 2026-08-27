@@ -1,0 +1,69 @@
+name: sync-registry
+
+# Weekly freshness check. It opens a pull request; it never merges one.
+# The registry is the part of this repository most likely to go stale, and the part
+# where a wrong automatic edit does the most damage - so a human always reviews.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Probe every source_url and write the report
+        run: python3 scripts/sync_registry.py
+
+      - name: Re-validate after the sync
+        run: |
+          pip install --quiet jsonschema
+          python3 scripts/validate_registry.py
+
+      - name: Detect changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing changed; no pull request needed."
+          fi
+
+      - name: Open a pull request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/registry-sync
+          title: "chore(registry): weekly freshness check"
+          commit-message: "chore(registry): weekly freshness check"
+          delete-branch: true
+          body: |
+            Automated weekly check of every `source_url` in the registry.
+
+            **This PR does not edit any stack entry.** It only refreshes
+            `docs/registry-sync-report.md`, and bumps `synced_at` in `index.json`
+            when every URL resolved.
+
+            Review checklist:
+
+            - [ ] Every `UNREACHABLE` or `HTTP 4xx` row: did the repository move, get
+                  renamed, or get withdrawn?
+            - [ ] A withdrawn skill is removed **and** the gap it leaves is added to that
+                  stack's `gap_map`.
+            - [ ] `last_verified` bumped on any stack entry confirmed by hand.
+            - [ ] Anything still unconfirmed carries `"needs_verification": true` rather
+                  than a plausible guess.
+
+            Merging this without reading the report defeats the point of the human gate.

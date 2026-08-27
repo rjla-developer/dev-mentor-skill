@@ -1,0 +1,86 @@
+{
+  "stack": "flutter",
+  "display_name": "Flutter",
+  "category": "mobile",
+  "detection": {
+    "files": ["pubspec.yaml"],
+    "markers": ["sdk: flutter", "flutter:"]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "flutter/agent-plugins",
+      "owner": "Flutter team",
+      "owner_kind": "framework-team",
+      "install": "npx skills add flutter/agent-plugins --skill '*' --agent universal --yes",
+      "covers": ["responsive-layouts", "declarative-routing", "json-serialization"],
+      "does_not_cover": ["testing-strategy", "app-architecture", "state-management-choice", "dead-code-hygiene"],
+      "source_url": "https://docs.flutter.dev/ai/agent-skills"
+    },
+    {
+      "id": "dart-lang/skills",
+      "owner": "Dart team",
+      "owner_kind": "framework-team",
+      "install": "npx skills add dart-lang/skills --skill '*' --agent universal --yes",
+      "covers": ["unit-test-generation", "package-dependency-resolution", "static-analysis-fixes"],
+      "does_not_cover": ["widget-tests", "golden-tests", "integration-tests", "test-strategy"],
+      "source_url": "https://docs.flutter.dev/ai/agent-skills",
+      "notes": "Generates unit tests. It does not decide which layer a given behavior belongs in - that judgment stays with the mentor."
+    },
+    {
+      "id": "LambdaTest/agent-skills#flutter-testing-skill",
+      "owner": "TestMu AI (formerly LambdaTest)",
+      "owner_kind": "vendor",
+      "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill flutter-testing-skill",
+      "covers": ["flutter-test-authoring"],
+      "does_not_cover": ["test-strategy", "golden-test-ci-pinning"],
+      "source_url": "https://github.com/LambdaTest/agent-skills",
+      "notes": "Vendor skill, not a framework-team skill. It uses a different CLI (agentskillsforall) than the skills CLI. Recommend it as an option, not as the default."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "testing-strategy",
+      "why_it_matters": "No Flutter framework-team skill decides which behavior belongs in a unit, widget, golden or integration test. Teams default to whatever is easiest to write, which is usually the slowest layer.",
+      "filled_by": "LambdaTest/agent-skills#flutter-testing-skill",
+      "fallback": "The mentor applies references/quality-gate.md directly."
+    },
+    {
+      "gap": "app-architecture",
+      "why_it_matters": "Layout and routing skills operate inside a widget. Nothing tells the agent when a feature folder has outgrown itself or when a widget should become a package.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/growth-signals.md with the stack thresholds below."
+    },
+    {
+      "gap": "golden-test-environment",
+      "why_it_matters": "Golden tests fail across platforms because of font and pixel rendering differences. A test suite that only passes on one machine erodes trust in the whole suite.",
+      "filled_by": null,
+      "fallback": "The mentor requires goldens to run on a pinned CI image and treats local golden failures as environment noise until proven otherwise."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "widget", "golden", "integration"],
+    "commands": {
+      "full_suite": "flutter test",
+      "unit_and_widget": "flutter test",
+      "golden_update": "flutter test --update-goldens",
+      "integration": "flutter test integration_test",
+      "coverage": "flutter test --coverage",
+      "analyze": "flutter analyze"
+    },
+    "notes": "Golden tests are visual regression, not behavior. They need a pinned CI environment to avoid cross-platform pixel differences. Never regenerate goldens to make a failure disappear without looking at the diff."
+  },
+  "growth_thresholds": {
+    "extract_component_library": ">=3 occurrences of the same widget across >=2 feature folders",
+    "split_feature": "a feature folder exceeds 15 files",
+    "extract_package": ">=2 features import the same internal module",
+    "split_widget": "a build() method exceeds 100 lines, because the widget is doing layout and logic at once"
+  },
+  "dead_code_risks": [
+    "Generated code (*.g.dart, *.freezed.dart, *.mocks.dart) - never edit or delete by hand, regenerate with build_runner",
+    "Widgets referenced only by golden tests",
+    "Route names referenced as strings in a router table",
+    "Classes registered by name in a service locator (get_it and similar)",
+    "Platform channel handlers referenced only from Kotlin/Swift sources"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "dev-mentor-marketplace",
+  "owner": {
+    "name": "rjla-developer",
+    "url": "https://github.com/rjla-developer"
+  },
+  "metadata": {
+    "description": "Marketplace hosting the dev-mentor plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "dev-mentor",
+      "source": "./",
+      "description": "Orchestrator and technical mentor: finds the right official skills for your stack, names what they do not cover, and explains the reasoning behind every recommendation."
+    }
+  ]
+}

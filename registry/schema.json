@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/schema.json",
+  "title": "dev-mentor stack registry entry",
+  "description": "One file per stack. Describes how to detect the stack, which official agent skills exist for it, what those skills do not cover, and the mentor's stack-specific thresholds.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "stack",
+    "display_name",
+    "category",
+    "detection",
+    "last_verified",
+    "official_skills",
+    "gap_map",
+    "testing",
+    "growth_thresholds",
+    "dead_code_risks"
+  ],
+  "properties": {
+    "stack": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Registry key. Must equal the filename without .json."
+    },
+    "display_name": { "type": "string", "minLength": 1 },
+    "category": {
+      "type": "string",
+      "enum": ["frontend", "backend", "fullstack", "mobile", "infra"]
+    },
+    "detection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files"],
+      "properties": {
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Manifest files whose presence suggests this stack. Forward slashes only."
+        },
+        "markers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Substrings inside those files that confirm the stack. Needed when one manifest serves many stacks (package.json, pyproject.toml)."
+        }
+      }
+    },
+    "last_verified": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Date a human last confirmed every id, install command and source_url in this file."
+    },
+    "official_skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "owner", "covers", "does_not_cover", "source_url"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Skill repository in owner/repo form, or owner/repo#skill-name for a single skill inside a collection."
+          },
+          "owner": { "type": "string", "minLength": 1 },
+          "owner_kind": {
+            "type": "string",
+            "enum": ["framework-team", "vendor", "community"],
+            "description": "Who publishes it. The mentor states this when recommending, because a community skill carries different risk than a framework-team one."
+          },
+          "skills": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Individual skill names inside the repository, when it is a collection."
+          },
+          "install": {
+            "type": ["string", "null"],
+            "description": "Verbatim install command. null when unverified; then needs_verification must be true."
+          },
+          "covers": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "does_not_cover": { "type": "array", "items": { "type": "string" } },
+          "source_url": { "type": "string", "format": "uri" },
+          "needs_verification": {
+            "type": "boolean",
+            "description": "true when any field here could not be confirmed against a primary source. The mentor must say so out loud before recommending it."
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "gap_map": {
+      "type": "array",
+      "description": "What no official skill for this stack covers. Empty array is a claim that nothing is missing - justify it in notes.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gap", "why_it_matters", "fallback"],
+        "properties": {
+          "gap": { "type": "string" },
+          "why_it_matters": { "type": "string" },
+          "filled_by": { "type": ["string", "null"] },
+          "fallback": { "type": "string" },
+          "needs_verification": { "type": "boolean" }
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["layers", "commands"],
+      "properties": {
+        "layers": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "commands": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string" },
+          "description": "Keyed by purpose. The mentor runs the full-suite command before reporting any task complete."
+        },
+        "notes": { "type": "string" }
+      }
+    },
+    "growth_thresholds": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string" },
+      "description": "Stack-specific overrides of references/growth-signals.md. Every value states the number AND the unit so the threshold is auditable."
+    },
+    "dead_code_risks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Patterns in this stack that look unreferenced but are not. Feeds mentor-clean's requires_human_review classification."
+    },
+    "notes": { "type": "string" }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "stack": "fastapi",
+  "display_name": "FastAPI (Python)",
+  "category": "backend",
+  "detection": {
+    "files": ["pyproject.toml", "requirements.txt"],
+    "markers": ["fastapi", "from fastapi import", "uvicorn"]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "microsoft/skills",
+      "owner": "Microsoft",
+      "owner_kind": "vendor",
+      "install": "npx skills add microsoft/skills",
+      "skills": ["fastapi-router-py", "pydantic-models-py"],
+      "covers": ["router-crud-scaffolding", "auth-dependencies", "response-models", "pydantic-v2-model-variants"],
+      "does_not_cover": ["test-strategy", "database-migrations", "architecture", "dead-code-hygiene"],
+      "source_url": "https://github.com/microsoft/skills",
+      "notes": "The repository holds 175 skills across languages; the installer runs a selection wizard. Install only the -py skills that apply, not the whole collection."
+    },
+    {
+      "id": "trailofbits/skills",
+      "owner": "Trail of Bits",
+      "owner_kind": "vendor",
+      "install": "npx skills add trailofbits/skills",
+      "skills": ["modern-python", "property-based-testing", "insecure-defaults", "static-analysis"],
+      "covers": ["uv-tooling", "ruff-linting", "pytest-conventions", "property-based-testing", "insecure-default-detection"],
+      "does_not_cover": ["fastapi-specific-patterns", "test-strategy"],
+      "source_url": "https://github.com/trailofbits/skills",
+      "needs_verification": true,
+      "notes": "modern-python, property-based-testing and insecure-defaults were confirmed on 2026-08-27. The static-analysis skill name was not confirmed against the repository listing - verify before recommending that one specifically."
+    },
+    {
+      "id": "LambdaTest/agent-skills#pytest-skill",
+      "owner": "TestMu AI (formerly LambdaTest)",
+      "owner_kind": "vendor",
+      "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill pytest-skill",
+      "covers": ["pytest-authoring", "fixtures", "parametrize", "mocking"],
+      "does_not_cover": ["test-strategy"],
+      "source_url": "https://github.com/LambdaTest/agent-skills"
+    },
+    {
+      "id": "fastapi/fastapi",
+      "owner": "FastAPI",
+      "owner_kind": "framework-team",
+      "install": null,
+      "covers": ["fastapi-idioms"],
+      "does_not_cover": ["test-strategy", "architecture"],
+      "source_url": "https://github.com/fastapi/fastapi/blob/master/fastapi/.agents/skills/fastapi/SKILL.md",
+      "needs_verification": true,
+      "notes": "FastAPI ships a skill inside its own repository at .agents/skills/fastapi rather than in a dedicated skills repo. The install route was not confirmed on 2026-08-27; check whether it is picked up automatically from the installed package before recommending a command."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "test-strategy",
+      "why_it_matters": "Router scaffolding produces endpoints fast. Nothing decides which of them carry business rules worth testing, so the suite ends up asserting that FastAPI can serialize a model.",
+      "filled_by": "LambdaTest/agent-skills#pytest-skill for authoring, trailofbits/skills#property-based-testing for invariants",
+      "fallback": "The mentor applies references/quality-gate.md directly."
+    },
+    {
+      "gap": "database-and-migrations",
+      "why_it_matters": "The listed skills stop at the request/response boundary. Schema changes are the single most common source of irreversible production damage in this stack.",
+      "filled_by": null,
+      "fallback": "The mentor requires every schema change to ship with a reversible migration and a plan for the deploy window."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "integration", "contract", "e2e"],
+    "commands": {
+      "full_suite": "pytest",
+      "coverage": "pytest --cov",
+      "typecheck": "mypy .",
+      "lint": "ruff check ."
+    },
+    "notes": "Prefer FastAPI's TestClient for integration tests over mocking the router - it exercises dependency overrides, validation and serialization, which is where the real bugs are. Read pyproject.toml for the configured runner and typechecker before assuming these commands."
+  },
+  "growth_thresholds": {
+    "split_router": "a router module exceeds 10 endpoints",
+    "extract_service_layer": "an endpoint function exceeds 40 lines, which means business logic has leaked into the transport layer",
+    "split_feature": "a feature package exceeds 15 files",
+    "extract_package": ">=2 features import the same internal module"
+  },
+  "dead_code_risks": [
+    "Endpoints registered by decorator and reachable only over HTTP",
+    "Pydantic models referenced only as type annotations in signatures",
+    "Alembic migration modules discovered by directory scan",
+    "Dependencies wired through Depends() with a callable reference",
+    "Celery or background tasks dispatched by string name",
+    "Plugins loaded through entry points declared in pyproject.toml"
+  ]
+}

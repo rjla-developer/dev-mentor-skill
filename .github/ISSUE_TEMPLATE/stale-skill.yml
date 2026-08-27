@@ -1,0 +1,55 @@
+name: Report a stale or wrong registry entry
+description: An install command changed, a repository moved, or a skill no longer exists
+title: "registry: <stack> - <what is wrong>"
+labels: ["registry", "stale"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The catalog ages faster than anything else in this repository. Reporting one wrong
+        line is a real contribution - it is how the rest stays trustworthy.
+
+  - type: input
+    id: stack
+    attributes:
+      label: Stack
+      placeholder: flutter
+    validations:
+      required: true
+
+  - type: input
+    id: entry
+    attributes:
+      label: Entry id
+      placeholder: flutter/agent-plugins
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong
+      options:
+        - The install command no longer works
+        - The repository moved or was renamed
+        - The skill no longer exists
+        - The covers / does_not_cover lists are wrong
+        - A gap_map entry is now filled by a new skill
+        - A growth threshold is miscalibrated for this stack
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: What you ran or opened, and what happened. A URL and an error message beat a description.
+    validations:
+      required: true
+
+  - type: textarea
+    id: correction
+    attributes:
+      label: The correct value, if you know it
+      description: Leave blank if you only know the current value is wrong. Half a report is still worth filing - do not guess to fill the gap.

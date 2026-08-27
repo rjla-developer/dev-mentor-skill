@@ -1,0 +1,68 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install validator dependencies
+        run: pip install --quiet jsonschema
+
+      - name: Validate the registry
+        run: python3 scripts/validate_registry.py
+
+      - name: Validate the skills
+        run: python3 scripts/validate_skills.py
+
+      - name: Check that the plan scripts run
+        run: |
+          python3 skills/mentor-clean/scripts/build_cleanup_plan.py --help > /dev/null
+          python3 skills/mentor-clean/scripts/validate_cleanup_plan.py --help > /dev/null
+          python3 scripts/flatten_claude_md.py --help > /dev/null
+
+      - name: Test the CLAUDE.md line-cap hook
+        run: |
+          set -e
+          work=$(mktemp -d)
+          python3 -c "open('$work/CLAUDE.md','w').write('x\n'*151)"
+          printf '{"tool_input":{"file_path":"%s/CLAUDE.md"}}' "$work" > "$work/payload.json"
+          set +e
+          python3 hooks/validate_claude_md.py < "$work/payload.json" > /dev/null 2>&1
+          over=$?
+          python3 -c "open('$work/CLAUDE.md','w').write('x\n'*100)"
+          python3 hooks/validate_claude_md.py < "$work/payload.json" > /dev/null 2>&1
+          under=$?
+          set -e
+          if [ "$over" != "2" ]; then echo "hook did not block a 151-line CLAUDE.md (exit $over)"; exit 1; fi
+          if [ "$under" != "0" ]; then echo "hook blocked a 100-line CLAUDE.md (exit $under)"; exit 1; fi
+          echo "hook behaves correctly on both sides of the cap"
+
+      - name: Check every eval scenario parses and declares expectations
+        run: |
+          python3 - <<'PY'
+          import glob, json, sys
+          failed = False
+          for path in sorted(glob.glob("evals/*.json")):
+              data = json.load(open(path, encoding="utf-8"))
+              for field in ("id", "title", "user_prompt", "expected_behavior", "failure_modes"):
+                  if not data.get(field):
+                      print("ERROR {}: missing {}".format(path, field)); failed = True
+              if not isinstance(data.get("expected_behavior"), list) or len(data["expected_behavior"]) < 3:
+                  print("ERROR {}: expected_behavior needs at least 3 observable items".format(path))
+                  failed = True
+          sys.exit(1 if failed else 0)
+          PY

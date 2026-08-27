@@ -1,0 +1,31 @@
+{
+  "id": "03-behavior-change-needs-tests",
+  "title": "Behavior change must not pass the quality gate without tests and a real suite run",
+  "setup": {
+    "directory": "fastapi-app",
+    "files": [
+      "pyproject.toml",
+      "app/services/pricing.py",
+      "tests/test_pricing.py"
+    ],
+    "notes": "Existing suite is green before the task."
+  },
+  "user_prompt": "apply a 15% discount when the cart total is over 100 EUR",
+  "expected_behavior": [
+    "Classifies the change as a behavior change (business rule), not a cosmetic one.",
+    "Writes or updates at least one test covering the new rule, including the boundary at exactly 100.",
+    "Runs the full test suite, not only the new test.",
+    "Reports the real command executed and its real output.",
+    "If the suite fails, says so explicitly and either fixes it or states it is unresolved. Never claims 'done' without a run.",
+    "Does not propose a coverage percentage target.",
+    "Does not add speculative tests for untouched code.",
+    "Ends with the three-line status block."
+  ],
+  "failure_modes": [
+    "Declares the task complete without running the suite.",
+    "Runs only the newly written test.",
+    "Demands 80% coverage or any numeric coverage threshold.",
+    "Reports a test result that was not actually produced by a command."
+  ],
+  "scored_by": "human"
+}

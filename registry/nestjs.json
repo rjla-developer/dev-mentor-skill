@@ -1,0 +1,78 @@
+{
+  "stack": "nestjs",
+  "display_name": "NestJS",
+  "category": "backend",
+  "detection": {
+    "files": ["nest-cli.json", "package.json"],
+    "markers": ["\"@nestjs/core\":", "@Module(", "@Injectable("]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "LambdaTest/agent-skills#jest-skill",
+      "owner": "TestMu AI (formerly LambdaTest)",
+      "owner_kind": "vendor",
+      "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill jest-skill",
+      "covers": ["jest-test-authoring", "mocking", "parameterized-tests"],
+      "does_not_cover": ["test-strategy", "nestjs-architecture", "dependency-injection-design"],
+      "source_url": "https://github.com/LambdaTest/agent-skills",
+      "notes": "Uses the agentskillsforall CLI, not the skills CLI."
+    },
+    {
+      "id": "getsentry/sentry-for-ai",
+      "owner": "Sentry",
+      "owner_kind": "vendor",
+      "install": null,
+      "skills": ["sentry-get-started", "sentry-instrument", "sentry-debug-issue", "sentry-create-alert"],
+      "covers": ["error-instrumentation", "production-issue-debugging", "alerting"],
+      "does_not_cover": ["test-strategy", "architecture", "api-design"],
+      "source_url": "https://github.com/getsentry/sentry-for-ai",
+      "needs_verification": true,
+      "notes": "The repository README states it is a skill SOURCE repository, not installed directly; distribution happens through per-client plugins. Confirm the current install route before recommending a command. There is no per-SDK repository such as sentry-nestjs-sdk."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "framework-team-skill",
+      "why_it_matters": "No NestJS-team skill collection was found on 2026-08-27. Community collections exist but none is canonical, so recommending one would push a stranger's opinions into every future decision on the project.",
+      "filled_by": null,
+      "fallback": "The mentor works from the codebase and from NestJS documentation on demand, and states plainly that no framework-team skill is available for this stack."
+    },
+    {
+      "gap": "test-strategy",
+      "why_it_matters": "Nest's DI container makes it trivial to mock everything, which produces suites that pass while the wiring is broken. Someone has to decide which seams are real and which mocks are lies.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/quality-gate.md, and requires at least one test per feature that exercises the real module wiring."
+    },
+    {
+      "gap": "authorization-boundary",
+      "why_it_matters": "Guards and interceptors are easy to add and easy to forget. An endpoint with no guard looks identical to one that is intentionally public.",
+      "filled_by": null,
+      "fallback": "The mentor requires every new controller route to declare its authorization decision explicitly, including 'public on purpose'."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "integration", "e2e"],
+    "commands": {
+      "full_suite": "npm test",
+      "e2e": "npm run test:e2e",
+      "coverage": "npm run test:cov",
+      "typecheck": "npx tsc --noEmit",
+      "lint": "npm run lint"
+    },
+    "notes": "The Nest CLI scaffolds test, test:e2e and test:cov scripts. Read package.json before assuming they exist - projects rename them."
+  },
+  "growth_thresholds": {
+    "extract_shared_module": ">=2 feature modules import the same provider",
+    "split_module": "a module declares more than 10 providers",
+    "split_service": "a service exceeds 5 constructor-injected dependencies",
+    "split_feature": "a module folder exceeds 15 files"
+  },
+  "dead_code_risks": [
+    "Providers resolved by injection token or by string, never imported by class",
+    "Guards, interceptors, pipes and filters applied via decorators or APP_GUARD-style global providers",
+    "DTO classes referenced only through decorator metadata",
+    "Entities discovered by an ORM glob pattern rather than by import",
+    "Controllers whose only inbound reference is the HTTP router"
+  ]
+}

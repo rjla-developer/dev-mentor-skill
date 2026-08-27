@@ -1,0 +1,36 @@
+<!--
+  Domain CLAUDE.md, e.g. backend/CLAUDE.md. Cap: 150 lines, same hook.
+
+  This file holds only what differs from the root. Do not restate the root's behavioral
+  rules, quality gate or conventions — they already apply here, and a second copy will
+  drift out of sync with the first.
+
+  Chain it from the root with:  @{{THIS_PATH}}
+-->
+
+# {{DOMAIN_NAME}}
+
+{{ONE_SENTENCE_SCOPE}}
+
+## Commands specific to this domain
+
+| Purpose | Command |
+|---|---|
+| Full test suite | `{{DOMAIN_TEST_COMMAND}}` |
+| Run locally | `{{DOMAIN_RUN_COMMAND}}` |
+
+## Layout
+
+{{WHERE_THINGS_LIVE_HERE}}
+
+## Decisions specific to this domain
+
+- {{DECISION}} — because {{REASON}}
+
+## Boundaries
+
+What this domain may and may not depend on. This is the section that stops a monolith
+from re-forming inside a modular repository.
+
+- May depend on: {{ALLOWED_DEPENDENCIES}}
+- Must not depend on: {{FORBIDDEN_DEPENDENCIES}}

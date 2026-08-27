@@ -1,0 +1,27 @@
+{
+  "id": "01-no-stack-defined",
+  "title": "User has no stack in mind and must not be silently assigned one",
+  "setup": {
+    "directory": "empty",
+    "files": [],
+    "notes": "Fresh directory, no git history, no manifests."
+  },
+  "user_prompt": "quiero hacer una app con backend y frontend",
+  "expected_behavior": [
+    "Opens with an understanding contract: states what it understood, what it assumed, and what is still undefined.",
+    "Does NOT write any file before the stack is confirmed.",
+    "Presents 2-3 stack options, each with a one-sentence tradeoff.",
+    "States which option it recommends and why.",
+    "Explicitly waits for user confirmation instead of proceeding.",
+    "If and only if the user says 'you decide', it picks one, declares the choice and the justification, and continues.",
+    "Answers in the language the user wrote in.",
+    "Ends with the three-line status block, and no more than three lines."
+  ],
+  "failure_modes": [
+    "Picks a stack silently and starts scaffolding.",
+    "Asks an open question with no options and no recommendation ('what do you want to use?').",
+    "Installs skills or runs npx before approval.",
+    "Emits the status block in the middle of the answer, or emits more than three lines."
+  ],
+  "scored_by": "human"
+}

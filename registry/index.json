@@ -1,0 +1,59 @@
+{
+  "registry_version": 1,
+  "synced_at": "2026-08-27",
+  "raw_base_url": "https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/",
+  "stacks": [
+    { "stack": "flutter", "display_name": "Flutter", "category": "mobile", "file": "flutter.json", "last_verified": "2026-08-27", "has_framework_team_skill": true },
+    { "stack": "nextjs", "display_name": "Next.js / React", "category": "fullstack", "file": "nextjs.json", "last_verified": "2026-08-27", "has_framework_team_skill": false },
+    { "stack": "angular", "display_name": "Angular", "category": "frontend", "file": "angular.json", "last_verified": "2026-08-27", "has_framework_team_skill": true },
+    { "stack": "react-native-expo", "display_name": "React Native / Expo", "category": "mobile", "file": "react-native-expo.json", "last_verified": "2026-08-27", "has_framework_team_skill": true },
+    { "stack": "nestjs", "display_name": "NestJS", "category": "backend", "file": "nestjs.json", "last_verified": "2026-08-27", "has_framework_team_skill": false },
+    { "stack": "fastapi", "display_name": "FastAPI (Python)", "category": "backend", "file": "fastapi.json", "last_verified": "2026-08-27", "has_framework_team_skill": true },
+    { "stack": "spring-boot", "display_name": "Spring Boot (Java)", "category": "backend", "file": "spring-boot.json", "last_verified": "2026-08-27", "has_framework_team_skill": false },
+    { "stack": "dotnet", "display_name": ".NET / ASP.NET Core", "category": "backend", "file": "dotnet.json", "last_verified": "2026-08-27", "has_framework_team_skill": true }
+  ],
+  "cross_cutting": [
+    {
+      "id": "trailofbits/skills",
+      "owner": "Trail of Bits",
+      "owner_kind": "vendor",
+      "install": "npx skills add trailofbits/skills",
+      "skills": ["property-based-testing", "insecure-defaults", "modern-python"],
+      "applies_to": ["fastapi", "nestjs", "spring-boot", "dotnet", "nextjs"],
+      "covers": ["property-based-testing", "insecure-default-detection", "python-tooling"],
+      "source_url": "https://github.com/trailofbits/skills"
+    },
+    {
+      "id": "anthropics/skills#webapp-testing",
+      "owner": "Anthropic",
+      "owner_kind": "vendor",
+      "install": null,
+      "applies_to": ["nextjs", "angular"],
+      "covers": ["playwright-driven-ui-verification", "browser-log-capture", "screenshot-verification"],
+      "source_url": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing",
+      "needs_verification": true
+    },
+    {
+      "id": "anthropics/skills#frontend-design",
+      "owner": "Anthropic",
+      "owner_kind": "vendor",
+      "install": null,
+      "applies_to": ["nextjs", "angular", "react-native-expo"],
+      "covers": ["visual-design-quality", "typography", "layout-craft"],
+      "source_url": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+      "needs_verification": true
+    },
+    {
+      "id": "cloudflare/skills#web-perf",
+      "owner": "Cloudflare",
+      "owner_kind": "vendor",
+      "install": "npx skills add cloudflare/skills --skill web-perf",
+      "applies_to": ["nextjs", "angular"],
+      "covers": ["core-web-vitals", "render-blocking-analysis", "layout-shift", "caching-audit"],
+      "source_url": "https://github.com/cloudflare/skills/tree/main/skills/web-perf",
+      "needs_verification": true,
+      "notes": "The skill was confirmed on 2026-08-27; the exact --skill install form was not. It requires Chrome DevTools MCP to do its job."
+    }
+  ],
+  "not_in_registry": "See docs/ROADMAP.md for the stacks that are not covered yet, and CONTRIBUTING.md for how to add one."
+}

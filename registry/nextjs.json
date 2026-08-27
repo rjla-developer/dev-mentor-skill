@@ -1,0 +1,91 @@
+{
+  "stack": "nextjs",
+  "display_name": "Next.js / React",
+  "category": "fullstack",
+  "detection": {
+    "files": ["package.json", "next.config.js", "next.config.mjs", "next.config.ts"],
+    "markers": ["\"next\":", "next/navigation", "app/layout"]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "vercel-labs/agent-skills",
+      "owner": "Vercel",
+      "owner_kind": "vendor",
+      "install": "npx skills add vercel-labs/agent-skills",
+      "skills": [
+        "react-best-practices",
+        "web-design-guidelines",
+        "composition-patterns",
+        "react-view-transitions",
+        "vercel-optimize",
+        "writing-guidelines",
+        "vercel-deploy-claimable"
+      ],
+      "covers": ["react-performance", "nextjs-data-fetching", "ui-code-review", "react-composition", "view-transitions", "vercel-cost-and-perf-audit"],
+      "does_not_cover": ["testing-strategy", "backend-architecture", "database-layer", "dead-code-hygiene"],
+      "source_url": "https://github.com/vercel-labs/agent-skills",
+      "notes": "Verified against the repository listing on 2026-08-27. There is no dedicated Next.js caching skill and no dedicated Next.js upgrade skill in this collection; caching guidance lives inside react-best-practices."
+    },
+    {
+      "id": "anthropics/skills#frontend-design",
+      "owner": "Anthropic",
+      "owner_kind": "vendor",
+      "install": null,
+      "covers": ["visual-design-quality", "typography", "layout-craft"],
+      "does_not_cover": ["testing-strategy", "accessibility-audit", "performance-budget"],
+      "source_url": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+      "needs_verification": true,
+      "notes": "Ships bundled with several clients, so an explicit install command may be unnecessary or may differ per client. Check whether it is already available before recommending an install."
+    },
+    {
+      "id": "anthropics/skills#webapp-testing",
+      "owner": "Anthropic",
+      "owner_kind": "vendor",
+      "install": null,
+      "covers": ["playwright-driven-ui-verification", "browser-log-capture", "screenshot-verification"],
+      "does_not_cover": ["unit-testing", "test-strategy"],
+      "source_url": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing",
+      "needs_verification": true
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "testing-strategy",
+      "why_it_matters": "The Vercel collection is performance- and design-oriented. Nothing in it decides what deserves a test, so behavior changes ship untested by default.",
+      "filled_by": "LambdaTest/agent-skills#vitest-skill or #jest-skill for authoring",
+      "fallback": "The mentor applies references/quality-gate.md directly.",
+      "needs_verification": true
+    },
+    {
+      "gap": "server-boundary-discipline",
+      "why_it_matters": "The most expensive Next.js mistakes are boundary mistakes: data fetched in the wrong place, secrets crossing into a client component, a server action doing no authorization. No listed skill audits that boundary.",
+      "filled_by": null,
+      "fallback": "The mentor reviews every 'use client' boundary and every server action for authorization on each feature that touches data."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "component", "integration", "e2e"],
+    "commands": {
+      "full_suite": "npm test",
+      "e2e": "npx playwright test",
+      "typecheck": "npx tsc --noEmit",
+      "lint": "npm run lint",
+      "build": "npm run build"
+    },
+    "notes": "Runner varies by project (vitest, jest, node:test). Read package.json scripts before assuming a command; never guess it. A green build is not a green suite - run both."
+  },
+  "growth_thresholds": {
+    "extract_component_library": ">=3 occurrences of the same component across >=2 routes or features",
+    "split_feature": "a route segment folder exceeds 15 files",
+    "extract_package": ">=2 apps or features import the same internal module",
+    "split_client_boundary": "a client component tree exceeds 3 levels of prop drilling"
+  },
+  "dead_code_risks": [
+    "Route files, layouts, loading and error boundaries - reachable by filesystem convention, never by import",
+    "generateStaticParams, generateMetadata and other convention-named exports",
+    "Server actions referenced only from a form action attribute",
+    "Components referenced only via next/dynamic with a string path",
+    "Public API surface of a workspace package consumed by another workspace"
+  ]
+}

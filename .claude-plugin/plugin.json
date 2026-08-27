@@ -1,0 +1,22 @@
+{
+  "name": "dev-mentor",
+  "version": "0.1.0",
+  "description": "Orchestrates the official agent skills published by framework teams, fills the gaps they leave, and mentors the developer on architecture, testing and code health - explaining the reasoning behind every recommendation.",
+  "author": {
+    "name": "rjla-developer",
+    "url": "https://github.com/rjla-developer"
+  },
+  "homepage": "https://github.com/rjla-developer/dev-mentor-skill",
+  "repository": "https://github.com/rjla-developer/dev-mentor-skill",
+  "license": "MIT",
+  "keywords": [
+    "orchestration",
+    "mentoring",
+    "architecture",
+    "testing",
+    "code-quality",
+    "dead-code",
+    "skill-registry"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

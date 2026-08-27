@@ -1,0 +1,84 @@
+name: Add a stack to the registry
+description: Propose a technology the registry does not cover yet
+title: "registry: add <stack>"
+labels: ["registry", "good first contribution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for extending the catalog. One rule above all others:
+        **an unverifiable field is marked `"needs_verification": true`, never guessed.**
+        A wrong install command sends someone to a 404 and costs the whole project trust.
+
+        See `docs/ROADMAP.md` for stacks already queued, and `CONTRIBUTING.md` for the
+        full field-by-field template.
+
+  - type: input
+    id: stack
+    attributes:
+      label: Stack key
+      description: Lowercase, digits and hyphens. Becomes registry/<key>.json.
+      placeholder: sveltekit
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options: [frontend, backend, fullstack, mobile, infra]
+    validations:
+      required: true
+
+  - type: textarea
+    id: detection
+    attributes:
+      label: Detection
+      description: Which manifest files identify it, and which marker inside them confirms it. A manifest shared by many stacks (package.json, pyproject.toml) always needs a marker.
+      placeholder: |
+        files: ["svelte.config.js", "package.json"]
+        markers: ["@sveltejs/kit"]
+    validations:
+      required: true
+
+  - type: textarea
+    id: skills
+    attributes:
+      label: Official skills
+      description: One per line - repository id, publisher, whether the publisher is the framework team / a vendor / the community, the verbatim install command, and the source URL you read it on. Write "UNVERIFIED" for anything you could not confirm from a primary source.
+      placeholder: |
+        sveltejs/skills | framework team | npx skills add sveltejs/skills | https://github.com/sveltejs/skills
+    validations:
+      required: true
+
+  - type: textarea
+    id: gaps
+    attributes:
+      label: What those skills do NOT cover
+      description: The most valuable field in the whole entry. What is left uncovered, and why it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Test layers and commands
+      description: The full-suite command is required - the quality gate runs it before reporting any task complete.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dead_code_risks
+    attributes:
+      label: Dead code risks
+      description: Patterns in this stack that look unreferenced but are alive - convention-based routing, DI by name, reflection, generated files.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: honesty
+    attributes:
+      label: Verification
+      options:
+        - label: I opened every source URL myself, and marked anything I could not confirm as needs_verification instead of filling in something plausible.
+          required: true

@@ -1,0 +1,94 @@
+{
+  "stack": "react-native-expo",
+  "display_name": "React Native / Expo",
+  "category": "mobile",
+  "detection": {
+    "files": ["app.json", "app.config.ts", "app.config.js", "package.json"],
+    "markers": ["\"expo\":", "\"react-native\":", "expo-router"]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "expo/skills",
+      "owner": "Expo team",
+      "owner_kind": "framework-team",
+      "install": "npx skills@latest add expo/skills --skill '*'",
+      "skills": [
+        "expo-overview",
+        "expo-project-structure",
+        "expo-router",
+        "expo-animation",
+        "expo-native-ui",
+        "expo-design-system",
+        "expo-ui",
+        "expo-data-fetching",
+        "expo-tailwind-setup",
+        "expo-dom",
+        "expo-web-to-native",
+        "expo-module",
+        "expo-brownfield",
+        "expo-dev-client",
+        "expo-app-clip",
+        "expo-upgrade",
+        "eas-app-stores",
+        "eas-hosting",
+        "eas-workflows",
+        "eas-observe",
+        "eas-update-insights",
+        "eas-simulator"
+      ],
+      "covers": ["project-structure", "routing", "native-ui", "design-system", "data-fetching", "styling-setup", "native-modules", "brownfield-integration", "dev-clients", "upgrades", "store-submission", "build-workflows", "observability"],
+      "does_not_cover": ["test-strategy", "performance-optimization-depth", "dead-code-hygiene"],
+      "source_url": "https://github.com/expo/skills",
+      "notes": "Start with expo-overview. This is the largest framework-team collection of the eight stacks; installing all of it is reasonable. A Claude Code plugin route also exists: claude plugin install expo@claude-plugins-official"
+    },
+    {
+      "id": "callstackincubator/agent-skills#react-native-best-practices",
+      "owner": "Callstack",
+      "owner_kind": "community",
+      "install": "npx skills@latest add callstackincubator/agent-skills --skill react-native-best-practices",
+      "covers": ["fps-profiling", "time-to-interactive", "bundle-size", "memory-leaks", "re-render-analysis", "animation-performance"],
+      "does_not_cover": ["test-strategy", "app-architecture"],
+      "source_url": "https://github.com/callstackincubator/agent-skills",
+      "notes": "Callstack are long-time React Native core contributors, but this is not a framework-team repository. Recommend it when the observed defect is a performance defect, not by default."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "test-strategy",
+      "why_it_matters": "Neither collection decides what deserves a test on a mobile client, where the slow layers (device E2E) are extremely tempting and extremely expensive.",
+      "filled_by": "LambdaTest/agent-skills#detox-skill for authoring device tests",
+      "fallback": "The mentor applies references/quality-gate.md directly.",
+      "needs_verification": true
+    },
+    {
+      "gap": "offline-and-state-sync",
+      "why_it_matters": "Mobile apps lose connectivity. Data-fetching guidance assumes the happy path; nothing audits what happens to in-flight writes when the network drops.",
+      "filled_by": null,
+      "fallback": "The mentor requires an explicit offline decision for every feature that writes data, even if the decision is 'fail loudly'."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "component", "integration", "device-e2e"],
+    "commands": {
+      "full_suite": "npm test",
+      "typecheck": "npx tsc --noEmit",
+      "lint": "npm run lint",
+      "doctor": "npx expo-doctor"
+    },
+    "notes": "Device E2E is the most expensive layer in any stack in this registry: slow, flaky and hardware dependent. Keep it to the handful of flows whose breakage would be a production incident. Read package.json scripts before assuming a runner."
+  },
+  "growth_thresholds": {
+    "extract_component_library": ">=3 occurrences of the same component across >=2 screens or features",
+    "split_feature": "a feature folder exceeds 15 files",
+    "extract_package": ">=2 features import the same internal module",
+    "split_screen": "a screen component exceeds 200 lines, which on mobile usually means layout, navigation and data are entangled"
+  },
+  "dead_code_risks": [
+    "Screens and layouts resolved by expo-router filesystem convention, never imported",
+    "Config plugins referenced by name in app.json",
+    "Native module bridges referenced only from Kotlin/Swift sources",
+    "Assets referenced by require() with a computed path",
+    "Deep link handlers reachable only from a URL scheme"
+  ]
+}

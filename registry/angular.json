@@ -1,0 +1,60 @@
+{
+  "stack": "angular",
+  "display_name": "Angular",
+  "category": "frontend",
+  "detection": {
+    "files": ["angular.json", "package.json"],
+    "markers": ["\"@angular/core\":", "@Component("]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "angular/skills",
+      "owner": "Angular team",
+      "owner_kind": "framework-team",
+      "install": "npx skills add angular/skills",
+      "skills": ["angular-developer", "angular-new-app"],
+      "covers": ["signals-reactivity", "forms", "dependency-injection", "routing", "ssr", "accessibility", "animations", "styling", "testing-apis", "app-scaffolding"],
+      "does_not_cover": ["test-strategy", "monorepo-boundaries", "state-management-choice", "dead-code-hygiene"],
+      "source_url": "https://github.com/angular/skills",
+      "notes": "angular-developer gives architectural guidance and idiomatic code; angular-new-app scaffolds via the Angular CLI. This is the broadest framework-team skill of the eight stacks - trust it and do not duplicate it."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "test-strategy",
+      "why_it_matters": "angular-developer covers testing APIs, not which behavior deserves a test. API knowledge without strategy produces suites that test the framework rather than the product.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/quality-gate.md directly."
+    },
+    {
+      "gap": "module-and-library-boundaries",
+      "why_it_matters": "Angular workspaces grow into many libs. Nothing tells the agent when a folder should become a library, or when a shared lib has become a dumping ground.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/growth-signals.md with the stack thresholds below."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "component", "integration", "e2e"],
+    "commands": {
+      "full_suite": "ng test --watch=false",
+      "e2e": "ng e2e",
+      "lint": "ng lint",
+      "build": "ng build"
+    },
+    "notes": "Read angular.json for the configured test builder before assuming the runner. --watch=false is required in CI or the command never exits."
+  },
+  "growth_thresholds": {
+    "extract_component_library": ">=3 occurrences of the same component across >=2 feature areas",
+    "split_feature": "a feature folder exceeds 15 files",
+    "extract_package": ">=2 features import the same internal module - promote it to a workspace library",
+    "split_service": "a service exceeds 5 injected dependencies, which usually means it owns more than one responsibility"
+  },
+  "dead_code_risks": [
+    "Components referenced only from a route configuration",
+    "Providers resolved by injection token rather than by class import",
+    "Pipes and directives declared in a shared module and used only in templates",
+    "Public exports of a workspace library consumed by another library",
+    "Anything referenced only from a template string, which import-graph tools do not follow"
+  ]
+}

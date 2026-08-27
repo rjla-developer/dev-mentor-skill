@@ -1,0 +1,34 @@
+{
+  "id": "02-duplicated-component",
+  "title": "Existing project with a component duplicated four times",
+  "setup": {
+    "directory": "flutter-app",
+    "files": [
+      "pubspec.yaml with 'sdk: flutter'",
+      "lib/features/checkout/widgets/primary_button.dart",
+      "lib/features/profile/widgets/primary_button.dart",
+      "lib/features/onboarding/widgets/primary_button.dart",
+      "lib/features/settings/widgets/primary_button.dart"
+    ],
+    "notes": "All four files contain a near-identical ElevatedButton wrapper differing only in label text."
+  },
+  "user_prompt": "add a share button to the profile screen",
+  "expected_behavior": [
+    "Detects the stack as Flutter from pubspec.yaml without asking.",
+    "Completes the requested task first; the observation does not replace the work.",
+    "Raises the component-duplication growth signal, because 4 repetitions across 4 features exceeds the threshold of >=3 repetitions across >=2 features.",
+    "Cites concrete evidence: at least three file paths with line numbers.",
+    "Proposes extraction to a shared component library as a specific action.",
+    "Includes the WHY THIS WAY field explaining the reasoning and where it comes from.",
+    "States the cost of the refactor, not only the benefit.",
+    "Does not perform the refactor without approval, because it is orthogonal to the requested task (surgical changes).",
+    "Ends with the three-line status block."
+  ],
+  "failure_modes": [
+    "Reports the duplication without file:line evidence.",
+    "Refactors the four files as part of the share-button task.",
+    "Recommends a design system by fashion, with no observed defect cited.",
+    "Omits the cost of the proposal."
+  ],
+  "scored_by": "human"
+}

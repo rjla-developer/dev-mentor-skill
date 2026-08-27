@@ -1,0 +1,90 @@
+<!--
+  Root CLAUDE.md. Hard cap: 150 lines, enforced by hooks/validate_claude_md.py.
+
+  Include only what an agent or a new contributor cannot infer by reading the code.
+  The test for every line: would removing it make someone pick the wrong file, command
+  or limit? If not, delete it.
+
+  Do not include: tutorials, changelogs, generic language rules, task notes that rot.
+  Personal preferences go in CLAUDE.local.md (exempt from the cap, gitignored).
+
+  Replace every {{PLACEHOLDER}} and delete the sections that do not apply.
+-->
+
+# {{PROJECT_NAME}}
+
+{{ONE_SENTENCE_WHAT_THIS_IS}}
+
+## Stack
+
+- {{STACK_AND_VERSION}}
+- Package manager: {{PACKAGE_MANAGER}}
+
+## Commands
+
+Run these exactly; do not substitute equivalents.
+
+| Purpose | Command |
+|---|---|
+| Install | `{{INSTALL_COMMAND}}` |
+| Run locally | `{{RUN_COMMAND}}` |
+| Full test suite | `{{TEST_COMMAND}}` |
+| Lint | `{{LINT_COMMAND}}` |
+| Typecheck | `{{TYPECHECK_COMMAND}}` |
+| Build | `{{BUILD_COMMAND}}` |
+
+## Layout
+
+{{WHERE_THINGS_LIVE_IN_3_TO_6_LINES}}
+
+## Architectural decisions
+
+Decisions that are already made. Changing one is a discussion, not a refactor.
+
+- {{DECISION_1}} — because {{REASON_1}}
+- {{DECISION_2}} — because {{REASON_2}}
+
+## Conventions
+
+- Branches: {{BRANCH_CONVENTION}}
+- Commits: {{COMMIT_CONVENTION}}
+- {{OTHER_CONVENTION}}
+
+## Behavioral rules
+
+**Think before coding.** State your assumptions. When the request is ambiguous, ask. When
+several readings are reasonable, present them — do not pick one silently.
+
+**Simplicity first.** The minimum that solves the stated problem. No speculative
+generality, no abstraction with a single implementation.
+
+**Surgical changes.** Change what the task requires. Do not improve adjacent code, do not
+reformat files you touched for other reasons, do not rename on the way past.
+
+**Goal-directed execution.** Define verifiable success criteria before starting, and
+iterate until they are met.
+
+These bias toward caution over speed. On trivial work, use judgment and say that you
+shortened the flow.
+
+## Quality gate
+
+- **Behavior changed** — logic, business rules, state, an API contract — **then a test is
+  written or updated.** Moving a file or changing a colour does not need a new test.
+- **Run `{{TEST_COMMAND}}` at the end of every task and report the real result.** Never
+  claim done without running it. If it fails, fix it or say so.
+- No coverage percentage targets. A test earns its place by being behavioral, specific,
+  deterministic and non-duplicative.
+
+## Never
+
+- {{NEVER_1}}
+- {{NEVER_2}}
+- Delete files that look unused. Use `/mentor-clean`, which requires a validated plan.
+
+## Sub-projects
+
+<!-- Delete this section if the repository is not split by domain. -->
+
+@{{PATH_TO_SUB_CLAUDE_MD_1}}
+@{{PATH_TO_SUB_CLAUDE_MD_2}}

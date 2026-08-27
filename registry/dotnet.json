@@ -1,0 +1,90 @@
+{
+  "stack": "dotnet",
+  "display_name": ".NET / ASP.NET Core",
+  "category": "backend",
+  "detection": {
+    "files": ["*.csproj", "*.sln", "global.json", "Directory.Build.props"],
+    "markers": ["Microsoft.NET.Sdk.Web", "<TargetFramework>", "WebApplication.CreateBuilder"]
+  },
+  "last_verified": "2026-08-27",
+  "official_skills": [
+    {
+      "id": "dotnet/skills#dotnet-aspnetcore",
+      "owner": ".NET team",
+      "owner_kind": "framework-team",
+      "install": "/plugin marketplace add dotnet/skills   then   /plugin install dotnet-aspnetcore@dotnet-agent-skills",
+      "covers": ["middleware", "minimal-and-controller-endpoints", "real-time-communication", "api-patterns"],
+      "does_not_cover": ["test-strategy", "architecture-review", "dead-code-hygiene"],
+      "source_url": "https://github.com/dotnet/skills",
+      "notes": "Distributed as Claude Code / Copilot CLI plugins through a marketplace, not through the skills CLI. Two commands, in this order."
+    },
+    {
+      "id": "dotnet/skills#dotnet-test",
+      "owner": ".NET team",
+      "owner_kind": "framework-team",
+      "install": "/plugin marketplace add dotnet/skills   then   /plugin install dotnet-test@dotnet-agent-skills",
+      "covers": ["test-execution", "test-filtering", "platform-detection", "coverage", "testability-review", "mstest-workflows"],
+      "does_not_cover": ["test-strategy"],
+      "source_url": "https://github.com/dotnet/skills",
+      "notes": "This is the closest any stack in the registry comes to a framework-team testing skill: it covers running and improving tests, including testability. It still does not decide which behavior deserves a test."
+    },
+    {
+      "id": "dotnet/skills#dotnet-data",
+      "owner": ".NET team",
+      "owner_kind": "framework-team",
+      "install": "/plugin marketplace add dotnet/skills   then   /plugin install dotnet-data@dotnet-agent-skills",
+      "covers": ["data-access", "entity-framework"],
+      "does_not_cover": ["migration-deploy-strategy"],
+      "source_url": "https://github.com/dotnet/skills"
+    },
+    {
+      "id": "LambdaTest/agent-skills#xunit-skill",
+      "owner": "TestMu AI (formerly LambdaTest)",
+      "owner_kind": "vendor",
+      "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill xunit-skill",
+      "covers": ["xunit-authoring", "fact-and-theory", "fluentassertions"],
+      "does_not_cover": ["test-strategy"],
+      "source_url": "https://github.com/LambdaTest/agent-skills",
+      "notes": "nunit-skill and mstest-skill exist in the same repository for projects on those runners. Prefer dotnet/skills#dotnet-test first - it is the framework-team option."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "test-strategy",
+      "why_it_matters": "dotnet-test covers execution and testability but not selection. The judgment about which behavior earns a test stays uncovered.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/quality-gate.md directly."
+    },
+    {
+      "gap": "solution-and-project-boundaries",
+      "why_it_matters": ".NET solutions accumulate projects. Nothing decides when a folder should become a project, or when a shared project has turned into a grab bag that every other project references.",
+      "filled_by": null,
+      "fallback": "The mentor applies references/growth-signals.md with the stack thresholds below."
+    }
+  ],
+  "testing": {
+    "layers": ["unit", "integration", "e2e"],
+    "commands": {
+      "full_suite": "dotnet test",
+      "coverage": "dotnet test --collect:\"XPlat Code Coverage\"",
+      "build": "dotnet build",
+      "format": "dotnet format --verify-no-changes"
+    },
+    "notes": "WebApplicationFactory gives real integration tests over the actual pipeline, which catches the middleware and DI mistakes that unit tests structurally cannot see."
+  },
+  "growth_thresholds": {
+    "split_controller": "a controller exceeds 10 endpoints",
+    "extract_service_layer": "an endpoint or action method exceeds 30 lines",
+    "split_service": "a class exceeds 5 constructor-injected dependencies",
+    "extract_project": ">=2 projects reference the same internal folder by relative path"
+  },
+  "dead_code_risks": [
+    "Types resolved from the DI container by interface rather than by direct construction",
+    "Controllers and endpoints reachable only through routing",
+    "Types instantiated by reflection, including serialization targets and source-generated code",
+    "EF Core migration classes discovered by assembly scan",
+    "Anything referenced only from appsettings.json",
+    "public members of a class library consumed by another solution",
+    "Code behind a feature flag that is currently off"
+  ]
+}
