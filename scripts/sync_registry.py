@@ -26,10 +26,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
-from datetime import date
+from datetime import datetime, timezone
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
@@ -90,6 +91,40 @@ def collect_urls() -> list:
     return rows
 
 
+def bump_synced_at(today: str) -> bool:
+    """Rewrite only the synced_at line in index.json. Returns True if it changed.
+
+    Deliberately a text edit and not a json.load/json.dump round trip. Dumping would
+    reformat the whole file, turning a one-line change into a hundred-line diff - and the
+    weekly pull request exists so that a human reads that diff. A diff nobody can read is
+    a diff everybody merges blind, which defeats the human gate this workflow is built on.
+    """
+    index_path = os.path.join(REGISTRY_DIR, "index.json")
+    try:
+        with open(index_path, "r", encoding="utf-8") as handle:
+            content = handle.read()
+    except OSError as exc:
+        die("cannot read index.json: {}".format(exc))
+
+    pattern = re.compile(r'("synced_at"\s*:\s*")(\d{4}-\d{2}-\d{2})(")')
+    match = pattern.search(content)
+    if match is None:
+        die('index.json has no "synced_at" field with a YYYY-MM-DD value. The mentor '
+            "shows that date to users when it falls back to the bundled catalog, so it "
+            "cannot be missing.")
+    if match.group(2) == today:
+        return False
+
+    updated = content[:match.start()] + match.group(1) + today + match.group(3) \
+        + content[match.end():]
+    try:
+        with open(index_path, "w", encoding="utf-8") as handle:
+            handle.write(updated)
+    except OSError as exc:
+        die("cannot update index.json: {}".format(exc))
+    return True
+
+
 def main() -> int:
     if not os.path.isdir(REGISTRY_DIR):
         die("{} not found".format(REGISTRY_DIR))
@@ -117,7 +152,9 @@ def main() -> int:
         results.append((stack, entry_id, url, verdict, note, needs_verification))
         print("  {:<18} {:<50} {}".format(stack, entry_id[:50], verdict))
 
-    today = date.today().isoformat()
+    # UTC, not local time: CI runs in UTC and a developer may run this anywhere.
+    # A date that depends on who ran it would flip back and forth in the diff.
+    today = datetime.now(timezone.utc).date().isoformat()
     lines = [
         "# Registry sync report",
         "",
@@ -158,16 +195,12 @@ def main() -> int:
         die("cannot write the report: {}".format(exc))
 
     if failures == 0:
-        index_path = os.path.join(REGISTRY_DIR, "index.json")
-        index = load_json(index_path)
-        index["synced_at"] = today
-        try:
-            with open(index_path, "w", encoding="utf-8") as handle:
-                json.dump(index, handle, indent=2)
-                handle.write("\n")
-        except OSError as exc:
-            die("cannot update index.json: {}".format(exc))
-        print("\nAll {} URLs resolved. synced_at set to {}.".format(len(results), today))
+        if bump_synced_at(today):
+            print("\nAll {} URLs resolved. synced_at set to {}."
+                  .format(len(results), today))
+        else:
+            print("\nAll {} URLs resolved. synced_at was already {}."
+                  .format(len(results), today))
     else:
         print("\n{} of {} URLs failed. synced_at left unchanged - it must keep meaning "
               "'last date everything checked out'.".format(failures, len(results)))
