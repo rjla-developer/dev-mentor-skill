@@ -22,6 +22,48 @@ finding is the constraint this whole project is built around.
 /plugin install dev-mentor@dev-mentor-marketplace
 ```
 
+## Getting started
+
+After installing, `dev-mentor` activates on its own whenever you ask for something that
+touches code. Models tend to under-trigger skills though, so if you want a deterministic
+start - or you are not sure it woke up - paste one of these into your project.
+
+### You are starting from zero
+
+> Use dev-mentor. I want to build **&lt;what you want to build&gt;**. Run the full workflow:
+> understanding contract, stack options with their tradeoffs, registry resolution, skill
+> recommendations, and CLAUDE.md. Do not install anything and do not write code until I
+> confirm the stack.
+
+It will state what it understood and assumed, give you 2-3 stacks with a one-line tradeoff
+each, say which it recommends and why, and stop. Nothing is scaffolded until you answer.
+
+### You already have a project
+
+> Use dev-mentor on this repository. Detect the stack, resolve the registry, and tell me:
+> which official skills I should have installed, what those skills do not cover, and what
+> you would fix first with file:line evidence. Then generate or update CLAUDE.md.
+> Do not change any code yet.
+
+It reads your manifests to detect the stack - no questions needed - then reports the
+skills you are missing, the gaps they leave, and any growth signal it can back with
+evidence. Read-only until you say otherwise.
+
+### After that
+
+Just work normally. The mentor stays in the loop: it enforces the quality gate on every
+behavior change, watches the growth thresholds, and ends each turn with a three-line
+status block telling you which skills are active and what it would suggest next.
+
+Two commands are always available:
+
+| Command | When |
+|---|---|
+| `/mentor-review` | You want the deep audit: six passes, up to five ranked findings, teaching mode |
+| `/mentor-clean` | You want dead code gone - safely, through a plan you approve |
+
+If the skill does not seem to activate, say so explicitly: *"use the dev-mentor skill"*.
+
 ## What it looks like
 
 ```
