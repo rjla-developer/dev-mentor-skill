@@ -67,3 +67,10 @@ jobs:
                   than a plausible guess.
 
             Merging this without reading the report defeats the point of the human gate.
+
+            ---
+
+            *The `validate` check on this PR shows a red X with no jobs. That is GitHub
+            declining to trigger workflows for an event raised with `GITHUB_TOKEN`, not a
+            failing check. This branch was already validated by the step above before the
+            PR was opened, and `main` is validated again on merge.*

@@ -1,5 +1,11 @@
 name: validate
 
+# Known artifact: on a pull request opened by the sync job, this workflow shows a red X
+# with zero jobs. That is GitHub's anti-recursion rule - an event raised with
+# GITHUB_TOKEN does not trigger workflows - not a failure of these checks. The sync PR's
+# content is validated twice regardless: inside sync-registry.yml before the PR is
+# opened, and by the push-to-main run after it merges. Do not chase it.
+
 on:
   push:
     branches: [main]
