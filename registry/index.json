@@ -1,6 +1,6 @@
 {
   "registry_version": 1,
-  "synced_at": "2026-08-27",
+  "synced_at": "2026-08-28",
   "raw_base_url": "https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/",
   "stacks": [
     { "stack": "flutter", "display_name": "Flutter", "category": "mobile", "file": "flutter.json", "last_verified": "2026-08-27", "has_framework_team_skill": true },
