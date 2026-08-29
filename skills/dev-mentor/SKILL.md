@@ -25,7 +25,7 @@ Load the rest only when the step needs it:
 |---|---|
 | 1-3 | `references/orchestration.md` - stack detection, registry resolution, install etiquette |
 | 6 | `references/quality-gate.md` - what earns a test, which layer, running the suite |
-| 7 | `references/growth-signals.md` - architectural health thresholds and evidence |
+| 4, 7 | `references/growth-signals.md` - architectural health thresholds and evidence |
 | every step | `references/mentoring-voice.md` - how a recommendation is structured |
 
 ## Workflow
@@ -113,6 +113,15 @@ Generate or update `CLAUDE.md` from `../../templates/CLAUDE.md.template`.
 - Include only what cannot be inferred from the code: build and test commands, branch
   conventions, architectural decisions specific to this project, behavioral rules.
 - Exclude tutorials, changelogs, generic language rules, and task notes that will rot.
+- **Write the architecture rules**, from the stack's `architecture` entry in the registry.
+  Settle the structural choice *before* Step 5, not after: `folder_strategy`, which
+  `variant` applies, and which layers are optional. Say who recommends it - a framework
+  team's own guidance is not the same as a preference. Do not add an optional layer
+  without an observed reason; that is the over-abstraction signal.
+- **Record landmines as you hit them**, in the same task, not afterwards. A platform trap
+  you paid for and did not write down will be paid for again. This is the only section of
+  the file that cannot be re-derived from the code, because the code looks correct right
+  up until the trap fires.
 - **The test for a line:** would removing it make a future contributor pick the wrong
   file, command, or limit? If not, it does not belong.
 - Large projects: split by domain (`backend/CLAUDE.md`, `frontend/CLAUDE.md`) using

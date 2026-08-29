@@ -3,8 +3,14 @@
   "display_name": "Angular",
   "category": "frontend",
   "detection": {
-    "files": ["angular.json", "package.json"],
-    "markers": ["\"@angular/core\":", "@Component("]
+    "files": [
+      "angular.json",
+      "package.json"
+    ],
+    "markers": [
+      "\"@angular/core\":",
+      "@Component("
+    ]
   },
   "last_verified": "2026-08-27",
   "official_skills": [
@@ -13,9 +19,28 @@
       "owner": "Angular team",
       "owner_kind": "framework-team",
       "install": "npx skills add angular/skills",
-      "skills": ["angular-developer", "angular-new-app"],
-      "covers": ["signals-reactivity", "forms", "dependency-injection", "routing", "ssr", "accessibility", "animations", "styling", "testing-apis", "app-scaffolding"],
-      "does_not_cover": ["test-strategy", "monorepo-boundaries", "state-management-choice", "dead-code-hygiene"],
+      "skills": [
+        "angular-developer",
+        "angular-new-app"
+      ],
+      "covers": [
+        "signals-reactivity",
+        "forms",
+        "dependency-injection",
+        "routing",
+        "ssr",
+        "accessibility",
+        "animations",
+        "styling",
+        "testing-apis",
+        "app-scaffolding"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "monorepo-boundaries",
+        "state-management-choice",
+        "dead-code-hygiene"
+      ],
       "source_url": "https://github.com/angular/skills",
       "notes": "angular-developer gives architectural guidance and idiomatic code; angular-new-app scaffolds via the Angular CLI. This is the broadest framework-team skill of the eight stacks - trust it and do not duplicate it."
     }
@@ -35,7 +60,12 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "component", "integration", "e2e"],
+    "layers": [
+      "unit",
+      "component",
+      "integration",
+      "e2e"
+    ],
     "commands": {
       "full_suite": "ng test --watch=false",
       "e2e": "ng e2e",
@@ -49,6 +79,50 @@
     "split_feature": "a feature folder exceeds 15 files",
     "extract_package": ">=2 features import the same internal module - promote it to a workspace library",
     "split_service": "a service exceeds 5 injected dependencies, which usually means it owns more than one responsibility"
+  },
+  "architecture": {
+    "recommended_by": "framework-team",
+    "source_url": "https://angular.dev/style-guide",
+    "pattern": "feature modules with standalone components",
+    "folder_strategy": "feature-first",
+    "layers": [
+      {
+        "name": "core",
+        "holds": "app-wide singletons: services, interceptors, guards",
+        "must_not": "hold anything a single feature owns"
+      },
+      {
+        "name": "shared",
+        "holds": "reusable presentational components, pipes, directives",
+        "must_not": "hold state or feature logic - a shared folder that grows state has become a second core"
+      },
+      {
+        "name": "features",
+        "holds": "self-contained feature areas: pages, components, routes and their own services",
+        "must_not": "import from another feature"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Single app, feature folders",
+        "use_when": "one deployable, one team",
+        "cost": "boundaries are conventions - nothing stops a cross-feature import but review"
+      },
+      {
+        "name": "Workspace libraries",
+        "use_when": ">=2 features import the same internal module, or two teams own different areas",
+        "cost": "build and release complexity; enforced boundaries you now have to maintain"
+      }
+    ],
+    "rules": [
+      "A feature never imports from another feature. Shared data goes through a core service both features inject.",
+      "core holds singletons only. If it has one instance per feature, it is not core.",
+      "shared holds presentational code only. State in shared is a defect.",
+      "Promote a folder to a workspace library only when a second feature already imports it."
+    ],
+    "component_library": "Promote to shared at >=3 occurrences across >=2 feature areas. Below that the duplication is a coincidence, not a pattern.",
+    "needs_verification": true,
+    "notes": "The core/shared/features split and the feature-isolation rule are consistently reported across the ecosystem, and the Angular team's style guide was updated around v20 (suffix rules changed). The exact wording of the official guidance was not confirmed against angular.dev on 2026-08-28 - verify before quoting it as doctrine."
   },
   "dead_code_risks": [
     "Components referenced only from a route configuration",

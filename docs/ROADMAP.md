@@ -54,6 +54,31 @@ starts from research instead of from nothing.
 | Ionic | `ionic` | Hybrid - decide `category` deliberately and justify it in `notes`. |
 | shadcn/ui | `shadcn-ui` | Component library rather than a stack; probably belongs in `index.json` cross-cutting. Decide and say why. |
 
+## Architecture doctrine, still missing
+
+`registry/<stack>.json` gained an `architecture` block: the pattern the framework team
+recommends, the `folder_strategy`, the named `variants` a senior chooses between, and the
+checkable `rules` the mentor writes into the project's `CLAUDE.md`.
+
+This is the field that answers the question a senior actually asks - not *"should I use
+clean architecture"* but *"three layers or feature-first, and what does this framework's
+team say"*. `scripts/validate_registry.py` warns on every stack that lacks it.
+
+| Stack | Status |
+|---|---|
+| Flutter | Done - verified against the Flutter team's own architecture guide |
+| Angular | Drafted - `needs_verification` on the official style-guide wording |
+| Next.js / React | **Missing** - server/client boundary is the real structural decision here |
+| React Native / Expo | **Missing** - expo-router conventions largely settle the folder strategy |
+| NestJS | **Missing** - module boundaries and provider scope |
+| FastAPI | **Missing** - router/service/repository split, and where Pydantic models live |
+| Spring Boot | **Missing** - package-by-feature vs package-by-layer, the oldest argument in the stack |
+| .NET | **Missing** - project boundaries within a solution |
+
+The rule for filling one in: **record which variant this framework's team recommends and
+what breaks if you choose wrong. Never explain what the pattern is** - the model already
+knows, and duplicated documentation is what this project exists to avoid.
+
 ## Definition of done
 
 A stack entry is complete when:

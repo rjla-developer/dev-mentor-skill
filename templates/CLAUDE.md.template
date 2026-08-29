@@ -50,22 +50,41 @@ Decisions that are already made. Changing one is a discussion, not a refactor.
 - Commits: {{COMMIT_CONVENTION}}
 - {{OTHER_CONVENTION}}
 
+## Architectural rules
+
+<!--
+  From the stack's `architecture.rules` in the registry, plus anything this project
+  decided for itself. Every line must be checkable by reading the code: "domain imports
+  no SDK" is a rule, "keep it clean" is not. State WHO recommends it - the framework
+  team's own guidance carries different weight from a preference.
+-->
+
+- {{ARCHITECTURE_RULE_1}}
+- {{ARCHITECTURE_RULE_2}}
+- {{ARCHITECTURE_RULE_3}}
+
+Structure: {{FOLDER_STRATEGY}} — {{WHY_THIS_STRATEGY}}
+
+## Known landmines
+
+<!--
+  Platform and library traps already paid for. Append here the moment one is found -
+  during a task, not afterwards. This is the highest-value section in the file: it is the
+  only part that cannot be re-derived by reading the code, because the code is what looks
+  correct right up until the trap fires.
+-->
+
+- {{LANDMINE}} — {{WHAT_IT_BREAKS}} — {{WHAT_TO_DO_INSTEAD}}
+
 ## Behavioral rules
 
-**Think before coding.** State your assumptions. When the request is ambiguous, ask. When
-several readings are reasonable, present them — do not pick one silently.
+- **Think before coding.** State assumptions; when several readings are reasonable,
+  present them rather than picking one silently.
+- **Simplicity first.** No speculative generality, no abstraction with one implementation.
+- **Surgical changes.** Change what the task requires; nothing adjacent.
+- **Goal-directed execution.** Verifiable success criteria before starting.
 
-**Simplicity first.** The minimum that solves the stated problem. No speculative
-generality, no abstraction with a single implementation.
-
-**Surgical changes.** Change what the task requires. Do not improve adjacent code, do not
-reformat files you touched for other reasons, do not rename on the way past.
-
-**Goal-directed execution.** Define verifiable success criteria before starting, and
-iterate until they are met.
-
-These bias toward caution over speed. On trivial work, use judgment and say that you
-shortened the flow.
+On trivial work, shorten the flow and say that you did.
 
 ## Quality gate
 
@@ -80,7 +99,9 @@ shortened the flow.
 
 - {{NEVER_1}}
 - {{NEVER_2}}
-- Delete files that look unused. Use `/mentor-clean`, which requires a validated plan.
+- Delete a file because it looks unused. Removal happens through a written plan that
+  lists the evidence of non-use, and only after the suite passes. (`/mentor-clean` does
+  this if it is installed; the requirement stands either way.)
 
 ## Sub-projects
 

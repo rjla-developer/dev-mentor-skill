@@ -3,8 +3,13 @@
   "display_name": "Flutter",
   "category": "mobile",
   "detection": {
-    "files": ["pubspec.yaml"],
-    "markers": ["sdk: flutter", "flutter:"]
+    "files": [
+      "pubspec.yaml"
+    ],
+    "markers": [
+      "sdk: flutter",
+      "flutter:"
+    ]
   },
   "last_verified": "2026-08-27",
   "official_skills": [
@@ -13,8 +18,17 @@
       "owner": "Flutter team",
       "owner_kind": "framework-team",
       "install": "npx skills add flutter/agent-plugins --skill '*' --agent universal --yes",
-      "covers": ["responsive-layouts", "declarative-routing", "json-serialization"],
-      "does_not_cover": ["testing-strategy", "app-architecture", "state-management-choice", "dead-code-hygiene"],
+      "covers": [
+        "responsive-layouts",
+        "declarative-routing",
+        "json-serialization"
+      ],
+      "does_not_cover": [
+        "testing-strategy",
+        "app-architecture",
+        "state-management-choice",
+        "dead-code-hygiene"
+      ],
       "source_url": "https://docs.flutter.dev/ai/agent-skills"
     },
     {
@@ -22,8 +36,17 @@
       "owner": "Dart team",
       "owner_kind": "framework-team",
       "install": "npx skills add dart-lang/skills --skill '*' --agent universal --yes",
-      "covers": ["unit-test-generation", "package-dependency-resolution", "static-analysis-fixes"],
-      "does_not_cover": ["widget-tests", "golden-tests", "integration-tests", "test-strategy"],
+      "covers": [
+        "unit-test-generation",
+        "package-dependency-resolution",
+        "static-analysis-fixes"
+      ],
+      "does_not_cover": [
+        "widget-tests",
+        "golden-tests",
+        "integration-tests",
+        "test-strategy"
+      ],
       "source_url": "https://docs.flutter.dev/ai/agent-skills",
       "notes": "Generates unit tests. It does not decide which layer a given behavior belongs in - that judgment stays with the mentor."
     },
@@ -32,8 +55,13 @@
       "owner": "TestMu AI (formerly LambdaTest)",
       "owner_kind": "vendor",
       "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill flutter-testing-skill",
-      "covers": ["flutter-test-authoring"],
-      "does_not_cover": ["test-strategy", "golden-test-ci-pinning"],
+      "covers": [
+        "flutter-test-authoring"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "golden-test-ci-pinning"
+      ],
       "source_url": "https://github.com/LambdaTest/agent-skills",
       "notes": "Vendor skill, not a framework-team skill. It uses a different CLI (agentskillsforall) than the skills CLI. Recommend it as an option, not as the default."
     }
@@ -59,7 +87,12 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "widget", "golden", "integration"],
+    "layers": [
+      "unit",
+      "widget",
+      "golden",
+      "integration"
+    ],
     "commands": {
       "full_suite": "flutter test",
       "unit_and_widget": "flutter test",
@@ -75,6 +108,61 @@
     "split_feature": "a feature folder exceeds 15 files",
     "extract_package": ">=2 features import the same internal module",
     "split_widget": "a build() method exceeds 100 lines, because the widget is doing layout and logic at once"
+  },
+  "architecture": {
+    "recommended_by": "framework-team",
+    "source_url": "https://docs.flutter.dev/app-architecture/guide",
+    "pattern": "layered MVVM",
+    "folder_strategy": "feature-first",
+    "layers": [
+      {
+        "name": "UI - View",
+        "holds": "widget classes that render",
+        "must_not": "hold business logic; only conditional rendering, animation, layout and simple routing"
+      },
+      {
+        "name": "UI - ViewModel",
+        "holds": "most of the application logic: transforms repository data, holds UI state, exposes commands",
+        "must_not": "know about widgets it does not own - one view maps to exactly one view model"
+      },
+      {
+        "name": "Data - Repository",
+        "holds": "the source of truth for model data: caching, retries, error handling, transforming raw data into domain models",
+        "must_not": "know about another repository"
+      },
+      {
+        "name": "Data - Service",
+        "holds": "wrappers over external sources - REST endpoints, platform APIs, local files - returning Future or Stream",
+        "must_not": "contain business logic"
+      },
+      {
+        "name": "Domain - Use case",
+        "optional": true,
+        "holds": "logic that merges several repositories or is duplicated across view models",
+        "must_not": "exist before a second view model needs it"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Two layers (UI + Data), no domain layer",
+        "use_when": "the default. View models talk to repositories directly.",
+        "cost": "logic shared by several view models gets duplicated before you notice it"
+      },
+      {
+        "name": "Three layers (UI + Domain + Data)",
+        "use_when": "a second view model needs the same composed logic, or one view model has to merge several repositories",
+        "cost": "one more hop for every read; premature use-cases are the over-abstraction signal in growth-signals.md"
+      }
+    ],
+    "rules": [
+      "A view holds no business logic. Conditional rendering, animation, layout and simple routing only.",
+      "One view maps to exactly one view model. A view model serving two views is a signal the feature is really two.",
+      "A repository never imports another repository. Composition across repositories belongs in a use case.",
+      "A service returns raw data. Business rules live above it.",
+      "Do not add the domain layer until a second view model needs the same logic."
+    ],
+    "component_library": "Extract to a shared component library at >=3 occurrences of the same widget across >=2 features - matching growth_thresholds.extract_component_library. Atomic Design is a way to organise that library once it exists; it is not a reason to create one.",
+    "notes": "The Flutter team defines a feature as one paired view + view model, which is why the folder strategy is feature-first rather than layer-first."
   },
   "dead_code_risks": [
     "Generated code (*.g.dart, *.freezed.dart, *.mocks.dart) - never edit or delete by hand, regenerate with build_runner",

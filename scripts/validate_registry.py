@@ -122,6 +122,17 @@ def check_stack_entry(name: str, data: dict) -> None:
         if not source_url.startswith("https://"):
             error(where, 'source_url must be an https URL, got "{}".'.format(source_url))
 
+    architecture = data.get("architecture")
+    if architecture is None:
+        warn(name, "no architecture block. The mentor then has nothing to say about which "
+                   "structural variant this stack's team recommends - the judgment a "
+                   "senior actually supplies. See docs/ROADMAP.md.")
+    elif architecture.get("recommended_by") == "framework-team" \
+            and not architecture.get("needs_verification") \
+            and not str(architecture.get("source_url", "")).startswith("https://"):
+        error(name, "architecture claims framework-team backing with no source_url. "
+                    "Attribute it or mark needs_verification.")
+
     gap_map = data.get("gap_map")
     if not isinstance(gap_map, list):
         error(name, '"gap_map" must be an array.')

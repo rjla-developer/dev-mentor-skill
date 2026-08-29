@@ -90,6 +90,7 @@ entirely. A wrong install command sends the user to a 404 and costs you their tr
 | `official_skills[].does_not_cover` | What you must handle yourself. |
 | `gap_map` | The part nobody else tells the user. Read it out loud at Step 3 and again at Step 6. |
 | `testing.commands` | The real commands for the quality gate. Verify against the project's own scripts before running. |
+| `architecture` | The structural doctrine: pattern, `folder_strategy`, the `variants` a senior chooses between, and `rules` - checkable invariants that go verbatim into the project's `CLAUDE.md`. Check `recommended_by`: `framework-team` is doctrine, anything else is an opinion and must be presented as one. A layer marked `optional` stays absent until an observed reason appears. |
 | `growth_thresholds` | Overrides the generic thresholds in `growth-signals.md`. |
 | `dead_code_risks` | Feeds `/mentor-clean`'s `requires_human_review` classification. |
 | `last_verified` | If it is old, say so when the recommendation matters. |
