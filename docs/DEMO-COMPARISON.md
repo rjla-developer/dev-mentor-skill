@@ -82,61 +82,99 @@ supported by this run and should not be made.
 
 ## Run B - with dev-mentor
 
-Directory: `english-mentor-with-skill`. Status: **in progress**.
+Directory: `english-mentor-with-skill`. Claude Code 2.1.251. Completed.
 
-Observed so far:
-
-1. **Fetched the live remote registry.** `curl` to
+1. Read its own plugin files - `behavioral-rules.md`, `orchestration.md`,
+   `mentoring-voice.md`, `quality-gate.md`, `growth-signals.md`, `CLAUDE.md.template`.
+2. **Fetched the live remote registry.** `curl` to
    `raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/index.json`,
    returning `synced_at: 2026-08-28`. First production exercise of the three-layer
    resolution described in `docs/REGISTRY.md`.
-2. Opened with the understanding contract **before writing anything**, in the documented
-   three-part shape:
-   - **Entendido** - restated the task.
-   - **Asumido** - four assumptions stated up front and marked as contestable: the model
-     is Claude via API (Haiku 4.5 for latency); Alexa cuts at ~8s so the model budget is
-     3-4s with a deterministic fallback; "Alexa does not understand" means fallback intent
-     or empty transcript, not a model error; scenario and level live in the progress
-     record while session state consolidates on close.
-   - **Indefinido** - refused to guess the truncated rule, and said why: *"cambia el
-     modelo de datos (contar diálogos consecutivos exige guardar racha)"*.
-3. **Reported the gap in its own catalog, unprompted:** *"Las skills de Alexa no están en
-   el catálogo - las entradas más cercanas son `nestjs` (Node) y `fastapi` (Python),
-   ninguna cubre ASK SDK. Lo trabajo con doctrina propia y luego te ofrezco abrir un issue
-   para que el stack entre al catálogo."*
-4. Asked a structured question set covering **three** decisions: level-up rule, stack, and
-   **persistence**. Run A decided persistence on its own.
-5. **Decomposed the ambiguous requirement instead of asking openly.** Where run A asked
-   *"¿Cuál es la condición exacta?"* and left the developer to reconstruct the rule, run B
-   offered four concrete readings - 3 dialogues, 2 dialogues, 1 dialogue, **3 turns** -
-   surfacing a turn-versus-dialogue distinction the developer had not noticed, and stating
-   the data-model cost of each: *"Exige guardar racha en el registro (se rompe al primer
-   error)"*. Both runs asked; only one taught why the question mattered.
-5. Loaded the bundled `claude-api` skill, same as run A.
+3. Opened with the understanding contract before writing anything: **Entendido**;
+   **Asumido** - four contestable assumptions (Claude via API, ~8s Alexa cutoff giving a
+   3-4s model budget, the definition of "Alexa did not understand", where scenario state
+   lives); **Indefinido** - refused to guess the truncated rule and said why, *"cambia el
+   modelo de datos"*.
+4. **Reported the gap in its own catalog, unprompted:** Alexa absent, nearest entries
+   `nestjs` and `fastapi`, neither covers ASK SDK; would work from its own doctrine and
+   offered to open an issue.
+5. Asked **three** decisions - level-up rule, stack, persistence - each with enumerated
+   readings and the cost of each. Run A asked two and decided persistence alone.
+6. Built with vitest. **19 tests passing.** Typecheck clean.
+7. **Wrote `CLAUDE.md` (110 lines)** from the plugin template: stack, exact commands,
+   layer boundaries, and architectural decisions each with its reason.
+8. Reported an explicit **quality gate**: both commands, both results.
+9. Reported one architectural finding in the five-field structure, with evidence -
+   `models/en-US.json:18-21`, `AMAZON.SearchQuery` needs a carrier phrase, so the learner
+   must say *"I say, a table for two"*; proposal, reasoning, and cost all stated.
+10. **Reported growth signals as a negative result:** *"ninguna cruza umbral en 13
+    ficheros"*, explicitly declining to count the single-implementation `ProgressStore`
+    port as a finding because it was the developer's decision, not an observed defect.
+11. Declared what it had not measured: *"No he medido la latencia real (no hay clave en
+    este entorno)"*.
+12. Ended with the three-line status block, including a concrete suggestion.
 
-To be filled in when the run completes: tests, artifacts, `CLAUDE.md`, status block,
-duration.
+## Test suites compared
+
+Both suites were read, not counted. "19 vs 33" is not a finding on its own.
+
+| | Run A | Run B |
+|---|---|---|
+| Tests | **33** | 19 |
+| Test code | **689 lines** | 299 lines |
+| Runner | `node:test` | vitest |
+| Rule boundaries covered | Yes | Yes |
+| SSML escaping of learner and model text | **Yes** | No |
+| Persistent attributes not clobbered on save | **Yes** | No |
+| Backward-compatible record migration | **Yes** | No |
+| Level cap, cross-session level retention | **Yes** | No |
+| CommonJS/ESM entrypoint interop | No | **Yes** |
+| Selection justified in the report | No - a count | **Yes - boundaries named** |
+
+**Run A's suite is broader, and the extra tests are not padding.** It covers SSML escaping
+of untrusted learner and model text, not clobbering unrelated persistent attributes, and
+filling missing fields when reading an older record. Real failure modes that run B never
+touches.
+
+Run B's suite is tighter, and every test is justified in the final report - including why
+the interop test exists (`ask-sdk-core` is CommonJS, the project is ESM, and that only
+breaks when the entrypoint loads).
+
+**Run A wins on test coverage. Do not claim otherwise.**
 
 ## Observed differences
 
-Only differences with direct evidence in a transcript. Anything unverified stays out.
+Only differences with direct evidence in a transcript.
 
 | Dimension | Run A | Run B |
 |---|---|---|
 | Asked before writing code | **Yes** - 2 questions | **Yes** - 3 questions |
 | Stack chosen by | The developer | The developer |
+| Shape of the ambiguous question | Open-ended | **4 enumerated readings, each with its cost** |
 | Assumptions stated | At the end, as 3 post-hoc decisions | **Up front**, as 4 contestable assumptions |
-| Decisions surfaced | 2 (rule, stack) | 3 (rule, stack, **persistence**) |
-| Shape of the ambiguous question | Open-ended | **4 enumerated readings, each with its data-model cost** |
-| Consulted a skill catalog | No | **Yes - live remote fetch** |
-| Declared what it does not know | No | **Yes - stack absent from catalog, offered an issue** |
-| Official skills for this stack | Not mentioned | Named the nearest entries and said neither covers ASK SDK |
-| `CLAUDE.md` | No | pending |
-| Tests | 33 passing | pending |
+| Decisions surfaced | 2 | 3 - also **persistence** |
+| Consulted a skill catalog | No | **Yes - live remote fetch, date reported** |
+| Declared what it does not know | No | **Yes - stack absent, offered an issue** |
+| `CLAUDE.md` | **None** | **110 lines** |
+| `README.md` | **144 lines** | None |
+| Tests | **33, broader** | 19, tighter and justified |
+| Quality gate reported | Implicit in prose | **Explicit: commands + results** |
+| Architectural finding | Locale conflict, in prose | Carrier phrase, **`file:line` + cost** |
+| Growth signals | Not assessed | **Assessed, reported as none crossed** |
+| Declared what it had not measured | No | **Yes - latency, no key available** |
+| Status block | No | **Yes, with a next suggestion** |
+| Found the `maxRetries: 0` timeout trap | **Yes** | **Yes** |
+| Handled a degraded turn correctly | **Yes** | **Yes** |
+| Found a real platform-level problem | **Yes** - locale | **Yes** - carrier phrase |
 
-The honest summary of the difference so far: **not "it decides better", but "more of the
-decision surface is visible before it is baked in, and the tool states the boundary of its
-own knowledge."**
+The honest summary: **not "it produces better code" - run A's code is at least as good and
+its test suite is broader. The difference is that more of the decision surface is visible
+before it is baked in, the tool states the boundary of its own knowledge, and the project
+keeps a memory of what was decided.**
+
+The single most concrete artifact difference is `CLAUDE.md`. Run A's next session starts
+cold - it will re-derive the build commands, the layer boundaries, and the three judgment
+calls it already made. Run B's next session reads them.
 
 ## Predictions that failed
 
@@ -151,9 +189,13 @@ expected differentiator does not exist against a 57-skill baseline.
 **"The baseline will not run its tests."** False. Run A ran the suite and reported 33
 passing, unprompted.
 
-**"The baseline will not surface architectural findings."** False. Run A found the
-locale problem - the one genuinely unsolvable-in-code issue in the whole task - on its
-own.
+**"The baseline will not surface architectural findings."** False. Run A found the locale
+problem on its own. Run B found a different one, the `AMAZON.SearchQuery` carrier phrase.
+Both real, both platform-level.
+
+**"The skill will write better tests."** False. Run A's suite is broader on real failure
+modes - SSML escaping, persistent-attribute isolation, record migration. Run B tests none
+of those.
 
 ## Claims we can and cannot make
 
@@ -163,12 +205,20 @@ own.
 - dev-mentor consults a live external catalog, and says so, with a date.
 - dev-mentor reports when a stack is absent from that catalog instead of staying quiet.
 - dev-mentor surfaced one decision (persistence) that the baseline made alone.
+- dev-mentor produced a `CLAUDE.md`; the baseline produced none. Run B's next session
+  starts warm; run A's starts cold.
+- dev-mentor reported its quality gate explicitly, as commands and results.
+- dev-mentor structured its finding with `file:line` evidence and a stated cost, and
+  reported growth signals as a negative result rather than inventing one.
+- dev-mentor declared what it had not measured.
 
 **Not supported - do not claim:**
 
 - "Produces better code." The baseline's output is strong.
 - "Without it, the agent decides for you." The baseline asked.
 - "Without it, tests do not get run." The baseline ran them.
+- "It writes better tests." The baseline's suite is broader and covers failure modes
+  dev-mentor's run missed entirely.
 
 ## Control caveats
 
@@ -190,5 +240,10 @@ Publish these alongside any result.
 - **The prompt carried a truncated rule** in both runs. Identical on both sides, so the
   comparison holds - but it means both runs were also being tested on how they handle a
   malformed requirement, which was not the original intent.
+- **The plugin reported a partial load failure.** `/plugin install` printed
+  *"Installed dev-mentor. The plugin couldn't be loaded - see /plugin for details."* The
+  skill itself loaded and ran, but the `PostToolUse` hook did not fire automatically - the
+  transcript shows `validate_claude_md.py` being invoked by hand instead. The 150-line cap
+  was therefore **not** enforced by the hook during this run. Cause not yet diagnosed.
 - **One run per side.** Model output varies between runs. A single pair is an anecdote,
   not a measurement. Three runs per side would be needed before publishing a rate.
