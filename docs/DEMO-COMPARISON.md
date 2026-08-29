@@ -106,6 +106,12 @@ Observed so far:
    para que el stack entre al catálogo."*
 4. Asked a structured question set covering **three** decisions: level-up rule, stack, and
    **persistence**. Run A decided persistence on its own.
+5. **Decomposed the ambiguous requirement instead of asking openly.** Where run A asked
+   *"¿Cuál es la condición exacta?"* and left the developer to reconstruct the rule, run B
+   offered four concrete readings - 3 dialogues, 2 dialogues, 1 dialogue, **3 turns** -
+   surfacing a turn-versus-dialogue distinction the developer had not noticed, and stating
+   the data-model cost of each: *"Exige guardar racha en el registro (se rompe al primer
+   error)"*. Both runs asked; only one taught why the question mattered.
 5. Loaded the bundled `claude-api` skill, same as run A.
 
 To be filled in when the run completes: tests, artifacts, `CLAUDE.md`, status block,
@@ -121,6 +127,7 @@ Only differences with direct evidence in a transcript. Anything unverified stays
 | Stack chosen by | The developer | The developer |
 | Assumptions stated | At the end, as 3 post-hoc decisions | **Up front**, as 4 contestable assumptions |
 | Decisions surfaced | 2 (rule, stack) | 3 (rule, stack, **persistence**) |
+| Shape of the ambiguous question | Open-ended | **4 enumerated readings, each with its data-model cost** |
 | Consulted a skill catalog | No | **Yes - live remote fetch** |
 | Declared what it does not know | No | **Yes - stack absent from catalog, offered an issue** |
 | Official skills for this stack | Not mentioned | Named the nearest entries and said neither covers ASK SDK |
@@ -172,6 +179,14 @@ Publish these alongside any result.
   behavior on both sides.
 - **Claude Code version.** Run A ran on 2.1.243. Confirm run B's version; a mismatch is a
   minor uncontrolled variable worth naming.
+- **The answers were matched by hand across runs.** Run B was answered to mirror run A:
+  3 dialogues, TypeScript + ask-sdk-core, and a `ProgressStore` interface with an
+  in-memory implementation for tests plus the Alexa persistent-attributes adapter
+  (DynamoDB) for Lambda - which is what run A built. Without matching them, the two runs
+  would diverge for reasons unrelated to the skill.
+- **The agreed rule diverged from the prompt's original intent.** The prompt said "3
+  turnos"; truncation removed it, and run A was answered "3 diálogos". Run B was answered
+  the same way for comparability. Consistent across both runs, so the comparison holds.
 - **The prompt carried a truncated rule** in both runs. Identical on both sides, so the
   comparison holds - but it means both runs were also being tested on how they handle a
   malformed requirement, which was not the original intent.
