@@ -3,10 +3,19 @@
   "display_name": "React Native / Expo",
   "category": "mobile",
   "detection": {
-    "files": ["app.json", "app.config.ts", "app.config.js", "package.json"],
-    "markers": ["\"expo\":", "\"react-native\":", "expo-router"]
+    "files": [
+      "app.json",
+      "app.config.ts",
+      "app.config.js",
+      "package.json"
+    ],
+    "markers": [
+      "\"expo\":",
+      "\"react-native\":",
+      "expo-router"
+    ]
   },
-  "last_verified": "2026-08-27",
+  "last_verified": "2026-08-29",
   "official_skills": [
     {
       "id": "expo/skills",
@@ -37,8 +46,26 @@
         "eas-update-insights",
         "eas-simulator"
       ],
-      "covers": ["project-structure", "routing", "native-ui", "design-system", "data-fetching", "styling-setup", "native-modules", "brownfield-integration", "dev-clients", "upgrades", "store-submission", "build-workflows", "observability"],
-      "does_not_cover": ["test-strategy", "performance-optimization-depth", "dead-code-hygiene"],
+      "covers": [
+        "project-structure",
+        "routing",
+        "native-ui",
+        "design-system",
+        "data-fetching",
+        "styling-setup",
+        "native-modules",
+        "brownfield-integration",
+        "dev-clients",
+        "upgrades",
+        "store-submission",
+        "build-workflows",
+        "observability"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "performance-optimization-depth",
+        "dead-code-hygiene"
+      ],
       "source_url": "https://github.com/expo/skills",
       "notes": "Start with expo-overview. This is the largest framework-team collection of the eight stacks; installing all of it is reasonable. A Claude Code plugin route also exists: claude plugin install expo@claude-plugins-official"
     },
@@ -47,8 +74,18 @@
       "owner": "Callstack",
       "owner_kind": "community",
       "install": "npx skills@latest add callstackincubator/agent-skills --skill react-native-best-practices",
-      "covers": ["fps-profiling", "time-to-interactive", "bundle-size", "memory-leaks", "re-render-analysis", "animation-performance"],
-      "does_not_cover": ["test-strategy", "app-architecture"],
+      "covers": [
+        "fps-profiling",
+        "time-to-interactive",
+        "bundle-size",
+        "memory-leaks",
+        "re-render-analysis",
+        "animation-performance"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "app-architecture"
+      ],
       "source_url": "https://github.com/callstackincubator/agent-skills",
       "notes": "Callstack are long-time React Native core contributors, but this is not a framework-team repository. Recommend it when the observed defect is a performance defect, not by default."
     }
@@ -69,13 +106,61 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "component", "integration", "device-e2e"],
+    "layers": [
+      {
+        "name": "unit",
+        "belongs_here": "business rules in hooks and plain modules",
+        "does_not_belong_here": "anything needing a rendered tree",
+        "cost": "cheap",
+        "signal_you_picked_wrong": "the test renders a screen to check a calculation"
+      },
+      {
+        "name": "component",
+        "belongs_here": "that a component renders and responds to interaction - the presentation rules",
+        "does_not_belong_here": "business rules reachable from a hook",
+        "cost": "moderate",
+        "signal_you_picked_wrong": "you are asserting the native view tree instead of behaviour"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "several components and hooks together, with native modules faked",
+        "does_not_belong_here": "branch enumeration",
+        "cost": "slower"
+      },
+      {
+        "name": "device-e2e",
+        "belongs_here": "the handful of flows whose breakage is an incident, on a real device or simulator",
+        "does_not_belong_here": "coverage - it is the wrong tool for it",
+        "cost": "the most expensive layer in the registry: slow, flaky, hardware-dependent"
+      }
+    ],
+    "proportions": "No stated proportions from the Expo team. The constraint that matters is that device E2E is the slowest and flakiest layer of any stack here, so keep it to flows whose breakage is an incident.",
     "commands": {
       "full_suite": "npm test",
       "typecheck": "npx tsc --noEmit",
       "lint": "npm run lint",
       "doctor": "npx expo-doctor"
     },
+    "rules": [
+      "Native modules are faked at the JS wrapper, not deep in the module. A test that reaches into the native layer only runs on a device.",
+      "Read package.json before assuming a runner - jest-expo and Vitest are both in use.",
+      "Test navigation by the state it produces, not by asserting on router internals.",
+      "Device E2E covers incident-level flows only. Adding one to raise coverage buys a flaky test and nothing else.",
+      "npx expo-doctor before shipping: dependency version mismatches surface as runtime crashes on device, not as build failures."
+    ],
+    "traps": [
+      "A test that passes in the simulator and fails on a real device - permissions, fonts, safe areas and timing all differ.",
+      "Faking a native module too shallowly: the fake returns values the real module never returns, so the suite is green on impossible data.",
+      "Async rendering with no explicit wait passes locally and fails on slower CI hardware.",
+      "expo-router screens are not imported anywhere, so an unused-import tool will call them dead and a test suite will never load them.",
+      "A component test renders on a JS mock of the native layer, so it says nothing about how it looks or behaves on hardware."
+    ],
+    "what_not_to_test": [
+      "That React Navigation navigates, or that a route file resolves to a URL.",
+      "Style objects and layout constants.",
+      "Generated native project files under ios/ and android/.",
+      "Config plugin output - exercise it with a prebuild instead."
+    ],
     "notes": "Device E2E is the most expensive layer in any stack in this registry: slow, flaky and hardware dependent. Keep it to the handful of flows whose breakage would be a production incident. Read package.json scripts before assuming a runner."
   },
   "growth_thresholds": {
@@ -83,6 +168,140 @@
     "split_feature": "a feature folder exceeds 15 files",
     "extract_package": ">=2 features import the same internal module",
     "split_screen": "a screen component exceeds 200 lines, which on mobile usually means layout, navigation and data are entangled"
+  },
+  "architecture": {
+    "recommended_by": "framework-team",
+    "source_url": "https://github.com/expo/skills",
+    "pattern": "filesystem routing with expo-router",
+    "folder_strategy": "feature-first",
+    "layers": [
+      {
+        "name": "app/ route files",
+        "holds": "screens and layouts, resolved by filename - _layout, index, [param], (group)",
+        "must_not": "hold business rules; a route file is reached by convention and cannot be imported for testing"
+      },
+      {
+        "name": "Components",
+        "holds": "presentational components shared across screens",
+        "must_not": "fetch or own domain state"
+      },
+      {
+        "name": "Domain / hooks",
+        "holds": "business rules and state, testable without rendering",
+        "must_not": "import navigation or native modules directly"
+      },
+      {
+        "name": "Native modules",
+        "holds": "the bridge to platform code",
+        "must_not": "be called from a screen without a JS-side wrapper you can fake in tests"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Routes plus shared components",
+        "use_when": "most apps",
+        "cost": "the shared folder becomes the whole app if nothing pushes back"
+      },
+      {
+        "name": "Feature folders alongside app/",
+        "use_when": "several independent areas",
+        "cost": "two trees to navigate - app/ for routing and features/ for everything else"
+      }
+    ],
+    "rules": [
+      "Route files under app/ are reached by filename, never imported. Keep logic out of them or it cannot be tested without rendering.",
+      "Business rules live in hooks or plain modules that render nothing.",
+      "A component that fetches and renders cannot be reused; separate the fetching hook from the presentation.",
+      "Native module access goes through a JS wrapper, so tests can replace it without a device."
+    ],
+    "component_library": "Extract to a shared component library at >=3 occurrences across >=2 screens. Expo publishes a design-system skill - read it before inventing one.",
+    "needs_verification": true,
+    "notes": "expo-router's filesystem conventions are documented and stable; the layering above is the mentor's judgment built on them. The Expo docs URL for project structure could not be confirmed on 2026-08-29 - verify before quoting Expo as the source for the layering."
+  },
+  "key_decisions": [
+    {
+      "decision": "Offline behaviour",
+      "why_it_is_forced": "Mobile devices lose connectivity, and nothing in the framework decides what happens to an in-flight write.",
+      "options": [
+        "fail loudly",
+        "queue and retry",
+        "optimistic with reconciliation",
+        "read-only offline"
+      ],
+      "reasonable_default": "Fail loudly unless the feature genuinely needs to work offline. It is honest and cheap.",
+      "cost_of_getting_it_wrong": "Optimistic writes without reconciliation silently lose user data, and the user believes it was saved."
+    },
+    {
+      "decision": "Local storage and its migration path",
+      "why_it_is_forced": "Stored data outlives app versions on a device you do not control.",
+      "options": [
+        "AsyncStorage",
+        "MMKV",
+        "SQLite/expo-sqlite",
+        "secure store for credentials"
+      ],
+      "reasonable_default": "Secure store for anything sensitive; a real database as soon as data is queried.",
+      "cost_of_getting_it_wrong": "Stored data with no migration path means an app update corrupts or discards it, and you cannot ask users to reinstall."
+    },
+    {
+      "decision": "Update strategy",
+      "why_it_is_forced": "EAS Update and store releases have different reach and different rollback stories.",
+      "options": [
+        "store releases only",
+        "EAS Update for JS",
+        "both"
+      ],
+      "reasonable_default": "Decide before shipping - it determines how fast you can fix a bad release.",
+      "cost_of_getting_it_wrong": "Without over-the-air updates, a bad release takes days to fix through store review."
+    },
+    {
+      "decision": "Managed workflow or native code",
+      "why_it_is_forced": "Adding native code changes the build, the upgrade path and who can run the project.",
+      "options": [
+        "managed with config plugins",
+        "bare / prebuild"
+      ],
+      "reasonable_default": "Stay managed until a required capability forces otherwise.",
+      "cost_of_getting_it_wrong": "Leaving the managed workflow is effectively one-way: upgrades stop being automatic."
+    },
+    {
+      "decision": "Crash and error reporting",
+      "why_it_is_forced": "There is no console on a user's device.",
+      "options": [
+        "Sentry",
+        "EAS Observe",
+        "platform crash reporting",
+        "none"
+      ],
+      "reasonable_default": "Something. Any of them beats none.",
+      "cost_of_getting_it_wrong": "Without it, production failures are invisible and you learn about them from store reviews."
+    }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "network requests",
+      "local storage reads and writes",
+      "native module calls",
+      "push notification and deep-link entry points",
+      "over-the-air update checks"
+    ],
+    "observability": "There is no console on a user's device. Crash and error reporting must be wired to a service - Expo publishes EAS Observe, and Sentry is the common alternative.",
+    "authorization": "Enforced on the server. A client-side check is a UX affordance; the bundle is on the user's device and can be read.",
+    "done_checks": [
+      "npx expo-doctor",
+      "npx tsc --noEmit",
+      "npm test",
+      "a build for each shipped platform",
+      "install on a real device, not only the simulator"
+    ],
+    "rules": [
+      "Every feature that writes data states its offline behaviour, even if the decision is to fail loudly.",
+      "Stored data has a migration path. You cannot ask users to reinstall.",
+      "A denied permission is a supported path, not a crash.",
+      "Assume several app versions are live at once - a server change that only works with the newest client breaks the rest.",
+      "Errors are reported off-device or they are invisible to you.",
+      "No secret in the JS bundle. It ships to the device and can be extracted."
+    ]
   },
   "dead_code_risks": [
     "Screens and layouts resolved by expo-router filesystem convention, never imported",

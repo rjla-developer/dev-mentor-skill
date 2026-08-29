@@ -62,6 +62,11 @@ mandatory rather than polite.
 | `gap_map` | The uncovered ground, why it matters, who fills it, and the fallback |
 | `testing.commands` | Real commands. `full_suite` is required - the quality gate runs it. |
 | `growth_thresholds` | Stack-specific overrides of the generic thresholds |
+| `architecture` | Pattern, `folder_strategy`, the layers with what each must not hold, the `variants` a senior chooses between, and `rules` written verbatim into the project's `CLAUDE.md`. `recommended_by` separates framework-team doctrine from opinion. |
+| `testing.layers[]` | What belongs in each layer, and `signal_you_picked_wrong` - the tell that an assertion sits at the wrong one. |
+| `testing.rules` / `traps` / `what_not_to_test` | Stack-specific test judgment. `traps` records how a suite in this stack passes while the product is broken. |
+| `key_decisions` | The choices this stack forces with no framework default, each with the cost of getting it wrong. |
+| `operability` | What counts as a failure boundary here, where authorization lives, the observability idiom, and the commands that prove shippable. |
 | `dead_code_risks` | Patterns that look unreferenced but are alive. Feeds `/mentor-clean`. |
 
 ## The honesty rule

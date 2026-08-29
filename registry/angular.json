@@ -12,7 +12,7 @@
       "@Component("
     ]
   },
-  "last_verified": "2026-08-27",
+  "last_verified": "2026-08-29",
   "official_skills": [
     {
       "id": "angular/skills",
@@ -61,10 +61,32 @@
   ],
   "testing": {
     "layers": [
-      "unit",
-      "component",
-      "integration",
-      "e2e"
+      {
+        "name": "unit",
+        "belongs_here": "services, pipes, pure functions and signal-derived state",
+        "does_not_belong_here": "anything needing a rendered template",
+        "cost": "cheap",
+        "signal_you_picked_wrong": "the test builds a TestBed just to call one method"
+      },
+      {
+        "name": "component",
+        "belongs_here": "that a component renders and reacts to input and user events - the presentation rules",
+        "does_not_belong_here": "business rules reachable from a service",
+        "cost": "moderate; needs TestBed",
+        "signal_you_picked_wrong": "you are asserting DOM structure instead of behaviour"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "several components and services wired together through real DI",
+        "does_not_belong_here": "branch enumeration",
+        "cost": "slower"
+      },
+      {
+        "name": "e2e",
+        "belongs_here": "the handful of flows whose breakage is an incident",
+        "does_not_belong_here": "coverage",
+        "cost": "slowest and most brittle"
+      }
     ],
     "commands": {
       "full_suite": "ng test --watch=false",
@@ -72,6 +94,23 @@
       "lint": "ng lint",
       "build": "ng build"
     },
+    "rules": [
+      "ng test needs --watch=false in CI or the command never exits and the job hangs until it times out.",
+      "Read angular.json for the configured test builder before assuming a runner.",
+      "Test signals and computed state through their public effect, not by reaching into internals.",
+      "A component test that mocks every injected service is asserting the mocks. Let real, side-effect-free services through."
+    ],
+    "traps": [
+      "Forgetting --watch=false turns a CI failure into a hung job with no output.",
+      "Change detection: an assertion made before detectChanges passes or fails for reasons unrelated to the code.",
+      "Zoneless and OnPush components need an explicit trigger; a test that passes under default change detection can fail in the real app.",
+      "Over-mocked TestBed setups drift from the real provider graph, so the suite stays green while DI is broken."
+    ],
+    "what_not_to_test": [
+      "That Angular's DI works, that a pipe is pure, that a router outlet renders.",
+      "Exact template structure - it changes on every markup refactor.",
+      "Generated files and polyfills."
+    ],
     "notes": "Read angular.json for the configured test builder before assuming the runner. --watch=false is required in CI or the command never exits."
   },
   "growth_thresholds": {
@@ -123,6 +162,75 @@
     "component_library": "Promote to shared at >=3 occurrences across >=2 feature areas. Below that the duplication is a coincidence, not a pattern.",
     "needs_verification": true,
     "notes": "The core/shared/features split and the feature-isolation rule are consistently reported across the ecosystem, and the Angular team's style guide was updated around v20 (suffix rules changed). The exact wording of the official guidance was not confirmed against angular.dev on 2026-08-28 - verify before quoting it as doctrine."
+  },
+  "key_decisions": [
+    {
+      "decision": "State management",
+      "why_it_is_forced": "Angular ships signals and RxJS and takes no position on shared application state.",
+      "options": [
+        "signals only",
+        "NgRx",
+        "NgRx SignalStore",
+        "services with RxJS subjects"
+      ],
+      "reasonable_default": "Signals plus services until shared state genuinely spans features.",
+      "cost_of_getting_it_wrong": "It reaches every component and every test setup; changing it later is a UI-layer rewrite."
+    },
+    {
+      "decision": "Standalone components or NgModules",
+      "why_it_is_forced": "Both are supported and mixing them is legal and confusing.",
+      "options": [
+        "standalone throughout",
+        "NgModules",
+        "mixed during migration"
+      ],
+      "reasonable_default": "Standalone - it is the default for new applications.",
+      "cost_of_getting_it_wrong": "A mixed codebase means two mental models for every import."
+    },
+    {
+      "decision": "Single app or workspace libraries",
+      "why_it_is_forced": "Nothing enforces a feature boundary until it is a library.",
+      "options": [
+        "single app with feature folders",
+        "workspace libraries"
+      ],
+      "reasonable_default": "Single app until a second feature imports the same internal module.",
+      "cost_of_getting_it_wrong": "Retrofitting library boundaries onto a codebase that ignored them means untangling every cross-feature import at once."
+    },
+    {
+      "decision": "Rendering: SSR or client only",
+      "why_it_is_forced": "SSR changes what code may touch browser globals.",
+      "options": [
+        "client only",
+        "SSR",
+        "SSR with hydration"
+      ],
+      "reasonable_default": "Decide before building - retrofitting SSR finds every window reference the hard way.",
+      "cost_of_getting_it_wrong": "Code written assuming a browser breaks on the server in ways that only appear at build or first request."
+    }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "HttpClient calls",
+      "route resolvers and guards",
+      "interceptors",
+      "third-party SDKs"
+    ],
+    "observability": "An ErrorHandler provider is the single place an unhandled client error can be captured. Without one, errors reach the console and nowhere else.",
+    "authorization": "Guards decide route access, but they are UX. The control is on the server; a guard only decides what the user is shown.",
+    "done_checks": [
+      "ng build",
+      "ng lint",
+      "ng test --watch=false",
+      "clean install from a fresh clone"
+    ],
+    "rules": [
+      "Every HttpClient call has a timeout and a stated retry policy. RxJS retry without a bound retries forever.",
+      "An interceptor that swallows an error makes every downstream failure silent - it must rethrow or report.",
+      "Provide a custom ErrorHandler or unhandled errors are invisible outside the user's console.",
+      "Every async view declares loading, empty and error states.",
+      "No secret in the client bundle. Everything in an Angular build ships to the browser."
+    ]
   },
   "dead_code_risks": [
     "Components referenced only from a route configuration",

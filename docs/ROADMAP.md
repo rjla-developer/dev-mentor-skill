@@ -54,71 +54,47 @@ starts from research instead of from nothing.
 | Ionic | `ionic` | Hybrid - decide `category` deliberately and justify it in `notes`. |
 | shadcn/ui | `shadcn-ui` | Component library rather than a stack; probably belongs in `index.json` cross-cutting. Decide and say why. |
 
-## Architecture doctrine, still missing
+## Stack judgment: complete
 
-`registry/<stack>.json` gained an `architecture` block: the pattern the framework team
-recommends, the `folder_strategy`, the named `variants` a senior chooses between, and the
-checkable `rules` the mentor writes into the project's `CLAUDE.md`.
+Every stack in the registry now carries the four judgment fields. This is what separates a
+catalog of links from a tool with an opinion.
 
-This is the field that answers the question a senior actually asks - not *"should I use
-clean architecture"* but *"three layers or feature-first, and what does this framework's
-team say"*. `scripts/validate_registry.py` warns on every stack that lacks it.
-
-| Stack | Status |
+| Field | What it answers |
 |---|---|
-| Flutter | Done - verified against the Flutter team's own architecture guide |
-| Angular | Drafted - `needs_verification` on the official style-guide wording |
-| Next.js / React | **Missing** - server/client boundary is the real structural decision here |
-| React Native / Expo | **Missing** - expo-router conventions largely settle the folder strategy |
-| NestJS | **Missing** - module boundaries and provider scope |
-| FastAPI | **Missing** - router/service/repository split, and where Pydantic models live |
-| Spring Boot | **Missing** - package-by-feature vs package-by-layer, the oldest argument in the stack |
-| .NET | **Missing** - project boundaries within a solution |
+| `architecture` | Which structural variant this framework's team recommends, and what breaks if you choose wrong |
+| `testing` | Which layer an assertion belongs in, the tell it is at the wrong one, and how tests lie in this stack |
+| `key_decisions` | The choices the stack forces with no framework default |
+| `operability` | What a boundary, an authorization decision and a shippable build look like here |
 
-The rule for filling one in: **record which variant this framework's team recommends and
-what breaks if you choose wrong. Never explain what the pattern is** - the model already
-knows, and duplicated documentation is what this project exists to avoid.
+| Stack | architecture | testing | key_decisions | operability |
+|---|---|---|---|---|
+| Flutter | framework-team | framework-team | done | done |
+| Next.js / React | framework-team | framework-team | done | done |
+| NestJS | framework-team | framework-team | done | done |
+| Angular | needs_verification | done | done | done |
+| React Native / Expo | needs_verification | done | done | done |
+| FastAPI | needs_verification | framework-team | done | done |
+| Spring Boot | needs_verification | framework-team | done | done |
+| .NET | needs_verification | framework-team | done | done |
 
-## Test doctrine and forced decisions, still missing
+`needs_verification` on architecture means the layering is the mentor's judgment built on
+documented conventions, not a maintainer mandate. The mentor says so when it recommends.
+**Confirming those five against primary sources is the highest-value contribution
+available right now** - the research is done, what is missing is a maintainer quote.
 
-Two more fields landed alongside `architecture`, for the same reason: generic doctrine is
-something a capable model already approximates, so only stack-specific judgment changes an
-outcome.
+## How to fill a field without writing documentation
 
-**`testing`** gained `layers[]` as objects (`belongs_here`, `does_not_belong_here`, `cost`,
-`signal_you_picked_wrong`), plus `rules`, `traps` and `what_not_to_test`. The traps field
-matters most: it records the ways a suite in this stack passes while the product is broken,
-or fails for a reason unrelated to the change. That is the knowledge a model is least
-likely to volunteer.
-
-**`key_decisions`** lists the choices a stack forces with no framework default - the ones a
-silent pick condemns a codebase to. Without this list, whether an agent asks about state
-management on a given day is luck.
-
-| Stack | `architecture` | `testing.rules` | `key_decisions` |
-|---|---|---|---|
-| Flutter | Done, verified | Done, verified | Done |
-| Angular | Drafted, unverified | **Missing** | **Missing** |
-| Next.js / React | **Missing** | **Missing** | **Missing** |
-| React Native / Expo | **Missing** | **Missing** | **Missing** |
-| NestJS | **Missing** | **Missing** | **Missing** |
-| FastAPI | **Missing** | **Missing** | **Missing** |
-| Spring Boot | **Missing** | **Missing** | **Missing** |
-| .NET | **Missing** | **Missing** | **Missing** |
-
-`scripts/validate_registry.py` warns on every gap above, so the list stays honest.
-
-**How to fill one without writing documentation.** The line is sharper than it looks:
+The line is sharper than it looks:
 
 | Write this | Not this |
 |---|---|
 | "A test needing `pumpWidget` is testing the View - move it down" | "How to write a widget test" |
 | "Goldens are generated in CI only; a local golden gives an indeterminate failure" | "What golden tests are" |
-| "`pumpAndSettle` never returns on an indefinite animation" | "The `pumpAndSettle` API reference" |
 | "State management has no framework default; it reaches every view model" | "Comparison of Riverpod and Bloc" |
+| "A fully mocked TestingModule passes while DI is broken" | "How Nest dependency injection works" |
 
-The test: could the model have written this line itself from general knowledge? If yes, it
-does not belong in the registry.
+The test: **could the model have written this line itself from general knowledge?** If yes,
+it does not belong in the registry.
 
 ## Definition of done
 

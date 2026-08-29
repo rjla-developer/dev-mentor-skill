@@ -3,18 +3,36 @@
   "display_name": ".NET / ASP.NET Core",
   "category": "backend",
   "detection": {
-    "files": ["*.csproj", "*.sln", "global.json", "Directory.Build.props"],
-    "markers": ["Microsoft.NET.Sdk.Web", "<TargetFramework>", "WebApplication.CreateBuilder"]
+    "files": [
+      "*.csproj",
+      "*.sln",
+      "global.json",
+      "Directory.Build.props"
+    ],
+    "markers": [
+      "Microsoft.NET.Sdk.Web",
+      "<TargetFramework>",
+      "WebApplication.CreateBuilder"
+    ]
   },
-  "last_verified": "2026-08-27",
+  "last_verified": "2026-08-29",
   "official_skills": [
     {
       "id": "dotnet/skills#dotnet-aspnetcore",
       "owner": ".NET team",
       "owner_kind": "framework-team",
       "install": "/plugin marketplace add dotnet/skills   then   /plugin install dotnet-aspnetcore@dotnet-agent-skills",
-      "covers": ["middleware", "minimal-and-controller-endpoints", "real-time-communication", "api-patterns"],
-      "does_not_cover": ["test-strategy", "architecture-review", "dead-code-hygiene"],
+      "covers": [
+        "middleware",
+        "minimal-and-controller-endpoints",
+        "real-time-communication",
+        "api-patterns"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "architecture-review",
+        "dead-code-hygiene"
+      ],
       "source_url": "https://github.com/dotnet/skills",
       "notes": "Distributed as Claude Code / Copilot CLI plugins through a marketplace, not through the skills CLI. Two commands, in this order."
     },
@@ -23,8 +41,17 @@
       "owner": ".NET team",
       "owner_kind": "framework-team",
       "install": "/plugin marketplace add dotnet/skills   then   /plugin install dotnet-test@dotnet-agent-skills",
-      "covers": ["test-execution", "test-filtering", "platform-detection", "coverage", "testability-review", "mstest-workflows"],
-      "does_not_cover": ["test-strategy"],
+      "covers": [
+        "test-execution",
+        "test-filtering",
+        "platform-detection",
+        "coverage",
+        "testability-review",
+        "mstest-workflows"
+      ],
+      "does_not_cover": [
+        "test-strategy"
+      ],
       "source_url": "https://github.com/dotnet/skills",
       "notes": "This is the closest any stack in the registry comes to a framework-team testing skill: it covers running and improving tests, including testability. It still does not decide which behavior deserves a test."
     },
@@ -33,8 +60,13 @@
       "owner": ".NET team",
       "owner_kind": "framework-team",
       "install": "/plugin marketplace add dotnet/skills   then   /plugin install dotnet-data@dotnet-agent-skills",
-      "covers": ["data-access", "entity-framework"],
-      "does_not_cover": ["migration-deploy-strategy"],
+      "covers": [
+        "data-access",
+        "entity-framework"
+      ],
+      "does_not_cover": [
+        "migration-deploy-strategy"
+      ],
       "source_url": "https://github.com/dotnet/skills"
     },
     {
@@ -42,8 +74,14 @@
       "owner": "TestMu AI (formerly LambdaTest)",
       "owner_kind": "vendor",
       "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill xunit-skill",
-      "covers": ["xunit-authoring", "fact-and-theory", "fluentassertions"],
-      "does_not_cover": ["test-strategy"],
+      "covers": [
+        "xunit-authoring",
+        "fact-and-theory",
+        "fluentassertions"
+      ],
+      "does_not_cover": [
+        "test-strategy"
+      ],
       "source_url": "https://github.com/LambdaTest/agent-skills",
       "notes": "nunit-skill and mstest-skill exist in the same repository for projects on those runners. Prefer dotnet/skills#dotnet-test first - it is the framework-team option."
     }
@@ -63,13 +101,55 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "integration", "e2e"],
+    "layers": [
+      {
+        "name": "unit",
+        "belongs_here": "business rules in isolation, with fakes for infrastructure",
+        "does_not_belong_here": "anything needing the request pipeline",
+        "cost": "fastest; Microsoft: if a behavior can be tested either way, choose the unit test",
+        "signal_you_picked_wrong": "the test spins up WebApplicationFactory to check one calculation"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "the real pipeline through WebApplicationFactory: routing, model binding, middleware, DI and the database",
+        "does_not_belong_here": "every permutation of data access",
+        "cost": "slower, more setup - and where middleware and DI defects actually surface",
+        "signal_you_picked_wrong": "the suite has an integration test per data permutation instead of a focused set"
+      },
+      {
+        "name": "e2e",
+        "belongs_here": "a browser driving the deployed app; Microsoft recommends Playwright for .NET for SPAs",
+        "does_not_belong_here": "coverage",
+        "cost": "slowest"
+      }
+    ],
+    "proportions": "Microsoft: 'If a behavior can be tested using either a unit test or an integration test, choose the unit test.' And: do not write integration tests for every permutation of data and file access - a focused set of read, write, update and delete tests is usually enough.",
     "commands": {
       "full_suite": "dotnet test",
       "coverage": "dotnet test --collect:\"XPlat Code Coverage\"",
       "build": "dotnet build",
       "format": "dotnet format --verify-no-changes"
     },
+    "rules": [
+      "Keep unit and integration tests in separate projects. Microsoft recommends this so infrastructure components are not accidentally pulled into unit tests, and so you can run one set without the other.",
+      "Prefer the unit test when both would work. Reach for WebApplicationFactory when the pipeline itself is under test.",
+      "For EF Core in-memory testing, the SQLite provider is the recommended choice - the EF in-memory provider is for limited and basic testing only and does not enforce relational constraints.",
+      "A focused set of CRUD integration tests covers data access. Do not enumerate permutations there.",
+      "POST endpoints protected by antiforgery need the token and cookie retrieved from a prior GET - a test that skips this is testing the rejection, not the endpoint."
+    ],
+    "traps": [
+      "The EF Core in-memory provider accepts writes a real database would reject, so the suite is green on data that cannot exist.",
+      "WebApplicationFactory resolves the real DI graph, so a test can pass because of a registration nobody intended to include.",
+      "Middleware ordering bugs are invisible to unit tests by construction - only the pipeline shows them.",
+      "Async void and un-awaited tasks in tests complete after the assertion, so the test passes before the work finished.",
+      "A shared WebApplicationFactory fixture carries database state between tests unless it is reset explicitly."
+    ],
+    "what_not_to_test": [
+      "That the DI container resolves a registration, or that routing maps an attribute.",
+      "Auto-properties and records with no behaviour.",
+      "EF Core migration classes as units - run them.",
+      "Generated code and source generators' output."
+    ],
     "notes": "WebApplicationFactory gives real integration tests over the actual pipeline, which catches the middleware and DI mistakes that unit tests structurally cannot see."
   },
   "growth_thresholds": {
@@ -77,6 +157,140 @@
     "extract_service_layer": "an endpoint or action method exceeds 30 lines",
     "split_service": "a class exceeds 5 constructor-injected dependencies",
     "extract_project": ">=2 projects reference the same internal folder by relative path"
+  },
+  "architecture": {
+    "recommended_by": "community",
+    "source_url": "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/",
+    "pattern": "layered, with projects as the enforced boundary",
+    "folder_strategy": "feature-first",
+    "layers": [
+      {
+        "name": "Endpoint / Controller",
+        "holds": "transport: routing, model binding, validation, response shaping",
+        "must_not": "hold business rules - an action past 30 lines has absorbed the service"
+      },
+      {
+        "name": "Application / service",
+        "holds": "business rules and use cases",
+        "must_not": "reference HttpContext"
+      },
+      {
+        "name": "Infrastructure",
+        "holds": "EF Core, external clients, file and queue access",
+        "must_not": "be referenced by the domain - the dependency points inward"
+      },
+      {
+        "name": "Domain",
+        "holds": "entities and rules with no framework dependency",
+        "must_not": "reference EF Core or ASP.NET"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Single project, folders by feature",
+        "use_when": "small services; boundaries are conventions",
+        "cost": "nothing stops a domain class from referencing EF Core"
+      },
+      {
+        "name": "Multiple projects per layer",
+        "use_when": "the boundary must be enforced by the compiler",
+        "cost": "more build and solution overhead; a project per layer with one class each is over-abstraction"
+      }
+    ],
+    "rules": [
+      "Dependencies point inward. Domain references nothing; infrastructure references domain, never the reverse.",
+      "A service never touches HttpContext. If it needs the caller, pass it as an argument.",
+      "Entities are not API responses. Return DTOs so a column rename is not a breaking API change.",
+      "A project boundary is the only boundary the compiler enforces. Folders are a convention and will be crossed.",
+      "Anything resolved from the DI container rather than constructed directly is invisible to the reference graph - list conditional registrations in CLAUDE.md."
+    ],
+    "component_library": "Not applicable - backend stack.",
+    "needs_verification": true,
+    "notes": "Microsoft publishes reference architectures rather than a single mandate. These rules are the common denominator across them plus the mentor's judgment - present them as such, not as doctrine."
+  },
+  "key_decisions": [
+    {
+      "decision": "Minimal APIs or controllers",
+      "why_it_is_forced": "Both are first-class and mixing them means two conventions for routing, filters and validation.",
+      "options": [
+        "minimal APIs",
+        "controllers",
+        "both, split deliberately"
+      ],
+      "reasonable_default": "One of them, written down.",
+      "cost_of_getting_it_wrong": "Two conventions means a cross-cutting concern gets implemented twice and forgotten once."
+    },
+    {
+      "decision": "Project layout: one project or many",
+      "why_it_is_forced": "Only a project reference is enforced by the compiler; folders are not.",
+      "options": [
+        "single project with feature folders",
+        "project per layer"
+      ],
+      "reasonable_default": "Single project until a boundary is actually being violated.",
+      "cost_of_getting_it_wrong": "Splitting late means untangling references that already point the wrong way; splitting early means solution overhead for nothing."
+    },
+    {
+      "decision": "Data access and the unit of work",
+      "why_it_is_forced": "EF Core, Dapper and raw ADO.NET have very different transaction and tracking semantics.",
+      "options": [
+        "EF Core with change tracking",
+        "EF Core no-tracking for reads",
+        "Dapper",
+        "mixed"
+      ],
+      "reasonable_default": "EF Core, with reads explicitly no-tracking.",
+      "cost_of_getting_it_wrong": "Change tracking left on for read paths silently holds entities and turns a read endpoint into a memory problem under load."
+    },
+    {
+      "decision": "Authentication and authorization model",
+      "why_it_is_forced": "ASP.NET Core supports policy, role and claim-based authorization and enforces none by default.",
+      "options": [
+        "policy-based",
+        "role-based",
+        "resource-based",
+        "gateway-enforced"
+      ],
+      "reasonable_default": "Policy-based, with a default authorization policy so an endpoint must opt out rather than opt in.",
+      "cost_of_getting_it_wrong": "Opt-in authorization means a forgotten attribute is a public endpoint that looks exactly like an intentional one."
+    },
+    {
+      "decision": "Hosting target",
+      "why_it_is_forced": "Framework features available depend on where it runs.",
+      "options": [
+        "Azure App Service",
+        "container",
+        "self-hosted Kestrel",
+        "serverless"
+      ],
+      "reasonable_default": "Decide before building.",
+      "cost_of_getting_it_wrong": "Discovering at deploy time that the target does not support something you built on means rewriting those paths."
+    }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "HttpClient calls",
+      "EF Core and database access",
+      "message brokers",
+      "background services and hosted services",
+      "third-party SDKs"
+    ],
+    "observability": "ILogger with structured logging, and OpenTelemetry for traces and metrics. Exception handling middleware is where an unhandled exception becomes a recorded, shaped problem response instead of a bare 500.",
+    "authorization": "Authorization policies. Set a default policy so endpoints must opt out with [AllowAnonymous] - then an unmarked endpoint is protected rather than public.",
+    "done_checks": [
+      "dotnet build",
+      "dotnet test",
+      "dotnet format --verify-no-changes",
+      "the app starts with the production configuration",
+      "clean clone and build from scratch"
+    ],
+    "rules": [
+      "Register HttpClient through IHttpClientFactory with an explicit timeout. A raw HttpClient with the default timeout and no policy exhausts sockets and waits far too long.",
+      "Set a default authorization policy so a forgotten attribute fails closed instead of open.",
+      "Exception handling middleware reports unhandled exceptions. Without it they become 500s with no record.",
+      "Configuration is validated at startup with options validation, so a missing value fails the deploy rather than the first request.",
+      "EF Core migrations are applied deliberately, never automatically at startup in production - an automatic migration on a rolling deploy runs from several instances at once."
+    ]
   },
   "dead_code_risks": [
     "Types resolved from the DI container by interface rather than by direct construction",

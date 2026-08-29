@@ -210,13 +210,6 @@
     "component_library": "Extract to a shared component library at >=3 occurrences of the same widget across >=2 features - matching growth_thresholds.extract_component_library. Atomic Design is a way to organise that library once it exists; it is not a reason to create one.",
     "notes": "The Flutter team defines a feature as one paired view + view model, which is why the folder strategy is feature-first rather than layer-first."
   },
-  "dead_code_risks": [
-    "Generated code (*.g.dart, *.freezed.dart, *.mocks.dart) - never edit or delete by hand, regenerate with build_runner",
-    "Widgets referenced only by golden tests",
-    "Route names referenced as strings in a router table",
-    "Classes registered by name in a service locator (get_it and similar)",
-    "Platform channel handlers referenced only from Kotlin/Swift sources"
-  ],
   "key_decisions": [
     {
       "decision": "State management",
@@ -276,5 +269,34 @@
       "reasonable_default": "shared_preferences for flags and small records; a real database as soon as anything is queried.",
       "cost_of_getting_it_wrong": "Migrating stored data in released apps needs a migration path you did not plan for."
     }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "HTTP clients and any Service class",
+      "platform channels",
+      "local database and shared_preferences",
+      "push and deep-link entry points"
+    ],
+    "observability": "There is no console on a user's device: crash and error reporting must be wired to a service or failures are invisible to you.",
+    "authorization": "Enforced on the server. A client-side check is a UX affordance, never a control - the app binary is in the user's hands.",
+    "done_checks": [
+      "flutter analyze",
+      "flutter test",
+      "flutter build (for each shipped platform)"
+    ],
+    "rules": [
+      "Every Service states a timeout and a retry count. A Future with no timeout hangs the UI with no error to show.",
+      "Every feature that writes data states its offline behaviour, even if the decision is to fail loudly.",
+      "Stored data has a migration path. You cannot ask users to reinstall.",
+      "A denied permission is a supported path, not a crash.",
+      "Assume several app versions are live at once - a server change that only works with the newest client breaks the rest."
+    ]
+  },
+  "dead_code_risks": [
+    "Generated code (*.g.dart, *.freezed.dart, *.mocks.dart) - never edit or delete by hand, regenerate with build_runner",
+    "Widgets referenced only by golden tests",
+    "Route names referenced as strings in a router table",
+    "Classes registered by name in a service locator (get_it and similar)",
+    "Platform channel handlers referenced only from Kotlin/Swift sources"
   ]
 }

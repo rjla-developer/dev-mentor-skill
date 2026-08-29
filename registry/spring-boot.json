@@ -3,18 +3,34 @@
   "display_name": "Spring Boot (Java)",
   "category": "backend",
   "detection": {
-    "files": ["pom.xml", "build.gradle", "build.gradle.kts"],
-    "markers": ["spring-boot-starter", "org.springframework.boot", "@SpringBootApplication"]
+    "files": [
+      "pom.xml",
+      "build.gradle",
+      "build.gradle.kts"
+    ],
+    "markers": [
+      "spring-boot-starter",
+      "org.springframework.boot",
+      "@SpringBootApplication"
+    ]
   },
-  "last_verified": "2026-08-27",
+  "last_verified": "2026-08-29",
   "official_skills": [
     {
       "id": "LambdaTest/agent-skills#junit-5-skill",
       "owner": "TestMu AI (formerly LambdaTest)",
       "owner_kind": "vendor",
       "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill junit-5-skill",
-      "covers": ["junit-5-authoring", "parameterized-tests", "lifecycle-annotations"],
-      "does_not_cover": ["test-strategy", "spring-context-testing", "architecture"],
+      "covers": [
+        "junit-5-authoring",
+        "parameterized-tests",
+        "lifecycle-annotations"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "spring-context-testing",
+        "architecture"
+      ],
       "source_url": "https://github.com/LambdaTest/agent-skills",
       "notes": "Uses the agentskillsforall CLI, not the skills CLI."
     },
@@ -23,8 +39,17 @@
       "owner": "Amplicode and Spring AIO",
       "owner_kind": "community",
       "install": null,
-      "covers": ["existing-app-exploration", "spring-data-model-changes", "dtos-and-mappers", "rest-controllers", "spring-security-configuration"],
-      "does_not_cover": ["test-strategy", "architecture-review"],
+      "covers": [
+        "existing-app-exploration",
+        "spring-data-model-changes",
+        "dtos-and-mappers",
+        "rest-controllers",
+        "spring-security-configuration"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "architecture-review"
+      ],
       "source_url": "https://github.com/Amplicode/spring-skills",
       "needs_verification": true,
       "notes": "Not published by the Spring team. The install command was not confirmed on 2026-08-27. Present it as a community option with that caveat stated out loud, never as the default."
@@ -45,13 +70,63 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "slice", "integration", "e2e"],
+    "layers": [
+      {
+        "name": "unit",
+        "belongs_here": "business rules with collaborators passed directly - no Spring context at all",
+        "does_not_belong_here": "anything needing beans wired to prove it",
+        "cost": "cheapest and fastest",
+        "signal_you_picked_wrong": "the test is annotated @SpringBootTest to call one pure method"
+      },
+      {
+        "name": "slice",
+        "belongs_here": "one layer with only the beans it needs: @WebMvcTest for controllers, @DataJpaTest for repositories, @JsonTest for serialization",
+        "does_not_belong_here": "business rules reachable without Spring",
+        "cost": "moderate; the context is small and cached",
+        "signal_you_picked_wrong": "the slice annotation was replaced with @SpringBootTest because something was missing - that is a design signal, not a test problem"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "the full context via @SpringBootTest, for wiring and cross-layer behaviour",
+        "does_not_belong_here": "branch enumeration",
+        "cost": "slow: the whole context boots",
+        "signal_you_picked_wrong": "every test in the suite is @SpringBootTest and the suite now takes minutes"
+      },
+      {
+        "name": "e2e",
+        "belongs_here": "the deployed surface",
+        "does_not_belong_here": "coverage",
+        "cost": "slowest"
+      }
+    ],
+    "proportions": "Spring Boot team: auto-configuration 'can sometimes be a little too much for tests', and it 'often helps to load only the parts of the configuration that are required to test a slice of your application'. Slices are also faster because Spring caches contexts and a smaller context is cached and reused.",
     "commands": {
       "full_suite": "./mvnw test",
       "full_suite_gradle": "./gradlew test",
       "verify": "./mvnw verify",
       "build": "./mvnw package -DskipTests"
     },
+    "rules": [
+      "Reach for a slice before @SpringBootTest. The framework's own guidance is to load only the parts a test needs.",
+      "Tests that share the same configuration reuse a cached context. Every distinct configuration is another context boot, so gratuitous @MockBean variation silently multiplies the suite's runtime.",
+      "A rule that needs no Spring beans gets a plain JUnit test with no annotations at all.",
+      "Use the Maven or Gradle wrapper that exists in the repository. Never both.",
+      "Slice tests do not load your security configuration by default - an endpoint that looks authorized in @WebMvcTest may be open in production."
+    ],
+    "traps": [
+      "@SpringBootTest everywhere: the suite gets slow enough that people stop running it, which is worse than having fewer tests.",
+      "Context caching hides the cost until a small annotation change forces a new context and the suite time doubles with no obvious cause.",
+      "@MockBean changes the context signature, so each unique combination is a separate cached context.",
+      "@Transactional on a test rolls back what the production code would have committed, so a test passes on code that would fail for real.",
+      "Component scan means a bean added anywhere joins every context - a test can pass because of a bean nobody intended to include.",
+      "Lazy loading works under an open session in a test and throws in production where the session is already closed."
+    ],
+    "what_not_to_test": [
+      "That Spring injects a bean, or that @RestController maps a route.",
+      "Getters, setters and Lombok-generated code.",
+      "Flyway or Liquibase migration files as units - run them instead.",
+      "Configuration property binding, unless the binding itself has custom logic."
+    ],
     "notes": "Pick the Maven or Gradle command by which wrapper exists in the repository; never run both. Slice tests (@WebMvcTest, @DataJpaTest) are the layer this stack most often skips and most needs."
   },
   "growth_thresholds": {
@@ -59,6 +134,134 @@
     "extract_service_layer": "a controller method exceeds 30 lines, which means business logic has leaked into the transport layer",
     "split_service": "a service exceeds 5 constructor-injected dependencies",
     "split_package": "a package exceeds 15 classes"
+  },
+  "architecture": {
+    "recommended_by": "community",
+    "source_url": "https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html",
+    "pattern": "layered with package-by-feature",
+    "folder_strategy": "feature-first",
+    "layers": [
+      {
+        "name": "Controller",
+        "holds": "transport: request mapping, validation, response shaping",
+        "must_not": "hold business rules - a controller method past 30 lines has absorbed the service"
+      },
+      {
+        "name": "Service",
+        "holds": "business rules and the transaction boundary",
+        "must_not": "know about HttpServletRequest or status codes"
+      },
+      {
+        "name": "Repository",
+        "holds": "queries and persistence",
+        "must_not": "contain business rules"
+      },
+      {
+        "name": "Domain / entity",
+        "holds": "the model",
+        "must_not": "be the API contract - expose DTOs, not entities"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Package by feature",
+        "use_when": "the default; each feature owns its controller, service and repository",
+        "cost": "a rule shared by two features needs a deliberate home"
+      },
+      {
+        "name": "Package by layer",
+        "use_when": "very small applications, or a team that already works this way",
+        "cost": "every feature change touches every package, and the boundaries mean nothing"
+      }
+    ],
+    "rules": [
+      "Package by feature, not by layer. A change to one feature should touch one package.",
+      "Entities are never returned from a controller. A JPA entity as an API response leaks the schema and lazy-loads at serialization time.",
+      "The transaction boundary is on the service, not the repository and not the controller.",
+      "A service never imports the servlet API.",
+      "Component scan makes wiring invisible: a bean that is never imported by name is still live. Anything conditional (@Profile, @ConditionalOnProperty) belongs in CLAUDE.md."
+    ],
+    "component_library": "Not applicable - backend stack.",
+    "needs_verification": true,
+    "notes": "Spring Boot documents structuring your code in a main-application-class package, but does not mandate package-by-feature. That preference is the mentor's judgment - present it as such. This is the only stack in the registry with no framework-team skill collection."
+  },
+  "key_decisions": [
+    {
+      "decision": "Package by feature or by layer",
+      "why_it_is_forced": "Spring Boot mandates neither, and the choice is close to irreversible once a codebase has grown.",
+      "options": [
+        "package by feature",
+        "package by layer"
+      ],
+      "reasonable_default": "By feature. A change to one feature should touch one package.",
+      "cost_of_getting_it_wrong": "By-layer packaging means every feature change touches every package, and no boundary can be enforced later without moving every file."
+    },
+    {
+      "decision": "Where the transaction boundary sits",
+      "why_it_is_forced": "@Transactional works on any layer and nothing tells you which one is right.",
+      "options": [
+        "service layer",
+        "repository layer",
+        "controller"
+      ],
+      "reasonable_default": "Service layer.",
+      "cost_of_getting_it_wrong": "A boundary on the repository means each write commits separately, so a half-completed operation is already durable."
+    },
+    {
+      "decision": "Entity exposure",
+      "why_it_is_forced": "Returning entities directly works and is the fastest thing to write.",
+      "options": [
+        "DTOs at the boundary",
+        "entities returned directly"
+      ],
+      "reasonable_default": "DTOs. Always.",
+      "cost_of_getting_it_wrong": "Entities as responses leak the schema, serialize lazy relations at the worst moment, and make every column rename an API break."
+    },
+    {
+      "decision": "Security model",
+      "why_it_is_forced": "Spring Security is powerful and configures nothing useful by default.",
+      "options": [
+        "method security",
+        "URL-based rules",
+        "resource server / OAuth2",
+        "gateway-enforced"
+      ],
+      "reasonable_default": "One model, written down. Mixing method and URL security puts the answer in two places.",
+      "cost_of_getting_it_wrong": "A route that appears protected by a URL rule while the method is callable from elsewhere is how internal endpoints leak."
+    },
+    {
+      "decision": "Build tool",
+      "why_it_is_forced": "Maven and Gradle both work and a repository should have exactly one.",
+      "options": [
+        "Maven",
+        "Gradle"
+      ],
+      "reasonable_default": "Whichever wrapper the repository already contains.",
+      "cost_of_getting_it_wrong": "Two build definitions drift, and CI ends up building something different from what developers build."
+    }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "RestClient/WebClient/RestTemplate calls",
+      "database and JPA",
+      "message brokers",
+      "scheduled tasks",
+      "third-party SDKs"
+    ],
+    "observability": "Spring Boot Actuator exposes health and metrics, and Micrometer is the instrumentation seam. A @ControllerAdvice handler is where an unhandled exception becomes a recorded, shaped error instead of a bare 500.",
+    "authorization": "Spring Security, via method security or URL rules. An endpoint with neither is public, and looks exactly like one that is public on purpose.",
+    "done_checks": [
+      "./mvnw verify (or ./gradlew build)",
+      "the application boots with the production profile",
+      "clean clone and build from scratch"
+    ],
+    "rules": [
+      "Every endpoint states its authorization decision, including 'public on purpose'.",
+      "Every outbound client has a connect and a read timeout. A RestTemplate with no timeouts waits indefinitely and exhausts the thread pool.",
+      "A @ControllerAdvice handler reports unhandled exceptions. Without one they become 500s with no record.",
+      "Configuration is validated at startup with @ConfigurationProperties and validation, so a missing value fails the deploy rather than the first request.",
+      "Schema changes ship as versioned, reversible migrations. Never rely on ddl-auto in anything past a prototype."
+    ]
   },
   "dead_code_risks": [
     "Beans instantiated by component scan and never imported by name",

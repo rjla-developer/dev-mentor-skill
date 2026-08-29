@@ -95,6 +95,7 @@ entirely. A wrong install command sends the user to a 404 and costs you their tr
 | `key_decisions` | The choices this stack forces with no framework default. Surface them at Step 1; each carries the cost of getting it wrong, which is what justifies interrupting the user. |
 | `architecture` | The structural doctrine: pattern, `folder_strategy`, the `variants` a senior chooses between, and `rules` - checkable invariants that go verbatim into the project's `CLAUDE.md`. Check `recommended_by`: `framework-team` is doctrine, anything else is an opinion and must be presented as one. A layer marked `optional` stays absent until an observed reason appears. |
 | `growth_thresholds` | Overrides the generic thresholds in `growth-signals.md`. |
+| `operability` | What a boundary, an authorization decision and a shippable build look like in this stack. Feeds `delivery-gates.md`. |
 | `dead_code_risks` | Feeds `/mentor-clean`'s `requires_human_review` classification. |
 | `last_verified` | If it is old, say so when the recommendation matters. |
 
@@ -124,13 +125,33 @@ Then the gaps, then the command list. Then stop.
 
 ## Stack not in the registry
 
-1. Search for official skills for that stack.
-2. Report findings with source URLs, and label each one framework-team, vendor or
-   community.
-3. Offer: "This stack is not in the catalog. Want me to draft an issue so it gets added?"
-   Point at `.github/ISSUE_TEMPLATE/new-stack.yml`.
-4. Continue the task using the mentor's own doctrine. A missing catalog entry degrades the
-   recommendations; it does not block the work.
+**This is the common case, not the exception.** There will always be more stacks outside
+the catalog than inside it, so the quality of this path matters more than the number of
+entries. Saying "not in the catalog, I will use my own doctrine" and then falling back to
+stack-agnostic advice adds nothing - it is honest and useless at the same time.
+
+Do all five, in order:
+
+1. **Apply the category defaults.** `index.json` carries `category_defaults` keyed by
+   backend / frontend / fullstack / mobile / infra: the decisions any stack in that
+   category forces, and the operability rules that hold regardless of framework. These are
+   weaker than a real entry but far stronger than nothing.
+2. **Research the framework's own guidance, live.** Look for the maintainers' architecture
+   guide, testing guide and project-structure page. Ten minutes of reading turns "I have no
+   entry" into "the maintainers recommend this, and here is the part they leave to you".
+   Cite what you find; label anything you could not confirm.
+3. **Say which is which.** Be explicit about what came from the maintainers, what came from
+   the category defaults, and what is your own judgment. The user is entitled to know how
+   much weight each carries.
+4. **Search for official skills** and report them with source URLs, labelled framework-team,
+   vendor or community.
+5. **Offer to contribute the entry.** You have just done the research a registry entry
+   needs - offer to draft it. Point at `.github/ISSUE_TEMPLATE/new-stack.yml`. This is how
+   the catalog grows: from the gaps its own users hit.
+
+**Never state an install command or an architecture recommendation you have not seen in a
+primary source.** Not from memory, not by analogy with another stack. A wrong install
+command sends the user to a 404; a wrong architecture claim sends them to a rewrite.
 
 ## Failure messages
 

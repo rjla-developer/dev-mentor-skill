@@ -423,6 +423,48 @@
           }
         }
       }
+    },
+    "operability": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What this stack needs to survive real users, expressed as things a reader can check. The gates themselves are stack-agnostic and live in references/delivery-gates.md; this records how each one looks HERE.",
+      "properties": {
+        "failure_boundaries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What counts as a call leaving the process in this stack. Naming them is most of the work: an agent cannot state a failure policy for a boundary it did not notice was one."
+        },
+        "observability": {
+          "type": "string",
+          "description": "The stack's own idiom for it - the file, hook or interface where instrumentation belongs, so it is not invented from scratch."
+        },
+        "authorization": {
+          "type": "string",
+          "description": "Where the authorization decision lives in this stack, and what an unguarded entry point looks like."
+        },
+        "done_checks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Commands that prove shippable rather than merely green. A passing suite and a clean build are different claims."
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Checkable operability rules for this stack, written into the project's CLAUDE.md when the stage makes them due."
+        },
+        "needs_verification": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
     }
   }
 }

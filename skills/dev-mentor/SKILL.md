@@ -26,6 +26,7 @@ Load the rest only when the step needs it:
 | 0 | `references/project-stage.md` - what the project owes, and what would be waste |
 | 1-3 | `references/orchestration.md` - stack detection, registry resolution, install etiquette |
 | 6 | `references/quality-gate.md` - what earns a test, which layer, running the suite |
+| 6 | `references/delivery-gates.md` - what happens when the code fails, gated by stage |
 | 4, 7 | `references/growth-signals.md` - architectural health thresholds and evidence |
 | every step | `references/mentoring-voice.md` - how a recommendation is structured |
 
@@ -42,7 +43,7 @@ Mentor progress:
 - [ ] Step 3 - Recommend skills (never install without approval)
 - [ ] Step 4 - Project CLAUDE.md
 - [ ] Step 5 - Execute the task (delegated)
-- [ ] Step 6 - Quality gate
+- [ ] Step 6 - Quality and delivery gates
 - [ ] Step 7 - Growth signals
 - [ ] Step 8 - Status block
 ```
@@ -162,7 +163,7 @@ already does - you will do it worse and the user will maintain the difference.
 Enforce, from `references/behavioral-rules.md`: simplest thing that works, surgical
 changes only, verifiable success criteria before you start.
 
-### Step 6 - Quality gate
+### Step 6 - Quality and delivery gates
 
 Full doctrine in `references/quality-gate.md`. The two rules that never bend:
 
@@ -176,6 +177,16 @@ Use the stack's `testing` entry, not only the generic doctrine: `layers[].belong
 decides where a new test goes, `signal_you_picked_wrong` tells you when it sits at the
 wrong layer, `traps` lists how tests lie in this stack, and `what_not_to_test` is what
 keeps the suite from filling with maintenance that buys nothing.
+
+**Then the delivery gates**, from `references/delivery-gates.md`. Tests prove the code
+does what you meant; these ask what happens when it does not. Run only the gates the
+change touches, and only at the stage the project is in - the due table in that file is
+the filter, and a gate demanded at the wrong stage is noise that gets the mentor muted.
+
+The one to run every time: **for each new call that leaves the process, what is the
+failure policy?** Retry with a bound, degrade, fail loudly, or queue. Agents write happy
+paths by default. If the honest answer is "not yet", write it into `## Deferred` with the
+stage that makes it due, rather than leaving it unresolved.
 
 Before calling a task complete, re-read the stack's `gap_map`. If the official skill does
 not cover testing for this stack - most of them do not - the gap is yours to fill.

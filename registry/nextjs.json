@@ -228,13 +228,6 @@
     "component_library": "Promote to shared at >=3 occurrences across >=2 routes or features. Below that, colocate in the segment that uses it - the framework makes colocation safe precisely so you do not have to decide early.",
     "notes": "The docs name three organisation strategies and decline to recommend one: 'choose a strategy that works for you and your team and be consistent across the project.' The mentor's job here is not to pick for the user - it is to make sure a choice is made, written down, and followed."
   },
-  "dead_code_risks": [
-    "Route files, layouts, loading and error boundaries - reachable by filesystem convention, never by import",
-    "generateStaticParams, generateMetadata and other convention-named exports",
-    "Server actions referenced only from a form action attribute",
-    "Components referenced only via next/dynamic with a string path",
-    "Public API surface of a workspace package consumed by another workspace"
-  ],
   "key_decisions": [
     {
       "decision": "File organisation strategy",
@@ -292,5 +285,36 @@
       "reasonable_default": "Decide before building, not after.",
       "cost_of_getting_it_wrong": "Discovering at deploy time that the target does not support a feature you built on means rewriting those routes."
     }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "fetch in server components and route handlers",
+      "server actions",
+      "database and ORM calls",
+      "third-party SDKs",
+      "the proxy/middleware layer"
+    ],
+    "observability": "instrumentation.ts is the framework's own hook for OpenTelemetry and instrumentation - use it rather than inventing a place.",
+    "authorization": "Enforced inside the server action or route handler itself. A check in a layout or a client component is not a control: the action is independently callable.",
+    "done_checks": [
+      "npm run build",
+      "npx tsc --noEmit",
+      "npm test",
+      "clean install from a fresh clone"
+    ],
+    "rules": [
+      "Every server action authorizes itself. It is a public endpoint whatever the UI does.",
+      "No secret reachable from a module that any 'use client' file imports, transitively.",
+      "Every async view declares loading, empty and error states - the framework gives loading.tsx and error.tsx for exactly this.",
+      "Every outbound fetch states a timeout. The platform will cut the request before your code notices.",
+      "Instrumentation goes in instrumentation.ts, not scattered across route handlers."
+    ]
+  },
+  "dead_code_risks": [
+    "Route files, layouts, loading and error boundaries - reachable by filesystem convention, never by import",
+    "generateStaticParams, generateMetadata and other convention-named exports",
+    "Server actions referenced only from a form action attribute",
+    "Components referenced only via next/dynamic with a string path",
+    "Public API surface of a workspace package consumed by another workspace"
   ]
 }

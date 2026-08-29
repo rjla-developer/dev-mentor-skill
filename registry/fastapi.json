@@ -3,19 +3,39 @@
   "display_name": "FastAPI (Python)",
   "category": "backend",
   "detection": {
-    "files": ["pyproject.toml", "requirements.txt"],
-    "markers": ["fastapi", "from fastapi import", "uvicorn"]
+    "files": [
+      "pyproject.toml",
+      "requirements.txt"
+    ],
+    "markers": [
+      "fastapi",
+      "from fastapi import",
+      "uvicorn"
+    ]
   },
-  "last_verified": "2026-08-27",
+  "last_verified": "2026-08-29",
   "official_skills": [
     {
       "id": "microsoft/skills",
       "owner": "Microsoft",
       "owner_kind": "vendor",
       "install": "npx skills add microsoft/skills",
-      "skills": ["fastapi-router-py", "pydantic-models-py"],
-      "covers": ["router-crud-scaffolding", "auth-dependencies", "response-models", "pydantic-v2-model-variants"],
-      "does_not_cover": ["test-strategy", "database-migrations", "architecture", "dead-code-hygiene"],
+      "skills": [
+        "fastapi-router-py",
+        "pydantic-models-py"
+      ],
+      "covers": [
+        "router-crud-scaffolding",
+        "auth-dependencies",
+        "response-models",
+        "pydantic-v2-model-variants"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "database-migrations",
+        "architecture",
+        "dead-code-hygiene"
+      ],
       "source_url": "https://github.com/microsoft/skills",
       "notes": "The repository holds 175 skills across languages; the installer runs a selection wizard. Install only the -py skills that apply, not the whole collection."
     },
@@ -24,9 +44,23 @@
       "owner": "Trail of Bits",
       "owner_kind": "vendor",
       "install": "npx skills add trailofbits/skills",
-      "skills": ["modern-python", "property-based-testing", "insecure-defaults", "static-analysis"],
-      "covers": ["uv-tooling", "ruff-linting", "pytest-conventions", "property-based-testing", "insecure-default-detection"],
-      "does_not_cover": ["fastapi-specific-patterns", "test-strategy"],
+      "skills": [
+        "modern-python",
+        "property-based-testing",
+        "insecure-defaults",
+        "static-analysis"
+      ],
+      "covers": [
+        "uv-tooling",
+        "ruff-linting",
+        "pytest-conventions",
+        "property-based-testing",
+        "insecure-default-detection"
+      ],
+      "does_not_cover": [
+        "fastapi-specific-patterns",
+        "test-strategy"
+      ],
       "source_url": "https://github.com/trailofbits/skills",
       "needs_verification": true,
       "notes": "modern-python, property-based-testing and insecure-defaults were confirmed on 2026-08-27. The static-analysis skill name was not confirmed against the repository listing - verify before recommending that one specifically."
@@ -36,8 +70,15 @@
       "owner": "TestMu AI (formerly LambdaTest)",
       "owner_kind": "vendor",
       "install": "npx agentskillsforall add https://github.com/LambdaTest/agent-skills.git --skill pytest-skill",
-      "covers": ["pytest-authoring", "fixtures", "parametrize", "mocking"],
-      "does_not_cover": ["test-strategy"],
+      "covers": [
+        "pytest-authoring",
+        "fixtures",
+        "parametrize",
+        "mocking"
+      ],
+      "does_not_cover": [
+        "test-strategy"
+      ],
       "source_url": "https://github.com/LambdaTest/agent-skills"
     },
     {
@@ -45,8 +86,13 @@
       "owner": "FastAPI",
       "owner_kind": "framework-team",
       "install": null,
-      "covers": ["fastapi-idioms"],
-      "does_not_cover": ["test-strategy", "architecture"],
+      "covers": [
+        "fastapi-idioms"
+      ],
+      "does_not_cover": [
+        "test-strategy",
+        "architecture"
+      ],
       "source_url": "https://github.com/fastapi/fastapi/blob/master/fastapi/.agents/skills/fastapi/SKILL.md",
       "needs_verification": true,
       "notes": "FastAPI ships a skill inside its own repository at .agents/skills/fastapi rather than in a dedicated skills repo. The install route was not confirmed on 2026-08-27; check whether it is picked up automatically from the installed package before recommending a command."
@@ -67,13 +113,59 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "integration", "contract", "e2e"],
+    "layers": [
+      {
+        "name": "unit",
+        "belongs_here": "pure business rules and validation logic",
+        "does_not_belong_here": "anything crossing the request boundary",
+        "cost": "cheap",
+        "signal_you_picked_wrong": "the test constructs a Request object just to call a rule"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "the real app through TestClient, with dependency overrides for what leaves the process",
+        "does_not_belong_here": "branch enumeration",
+        "cost": "moderate - and this is where the real defects are"
+      },
+      {
+        "name": "contract",
+        "belongs_here": "that the response shape matches what clients depend on",
+        "does_not_belong_here": "internal behaviour",
+        "cost": "cheap"
+      },
+      {
+        "name": "e2e",
+        "belongs_here": "the deployed surface",
+        "does_not_belong_here": "coverage",
+        "cost": "slow"
+      }
+    ],
+    "proportions": "FastAPI team: test through TestClient with normal def functions, not async def, so pytest runs without complications. They recommend exercising the real request/response cycle rather than mocking the app.",
     "commands": {
       "full_suite": "pytest",
       "coverage": "pytest --cov",
       "typecheck": "mypy .",
       "lint": "ruff check ."
     },
+    "rules": [
+      "Test through TestClient against the real app. It exercises dependency resolution, validation and serialization - where the defects actually are.",
+      "Test functions are normal def, not async def. The team states this explicitly.",
+      "Replace external systems with dependency_overrides, not by monkeypatching module internals. The override is the supported seam.",
+      "Every endpoint has at least one test for its failure response, not only its success response.",
+      "Clear dependency_overrides between tests or one test's override silently configures the next."
+    ],
+    "traps": [
+      "Mocking the router instead of using TestClient skips validation and serialization - the layers most likely to be wrong.",
+      "A leaked dependency_overrides entry makes a later test pass for the wrong reason.",
+      "async def test functions without the right plugin either never run or run outside the app's event loop.",
+      "A response_model silently drops fields, so the test asserts the trimmed output while the endpoint returns more than declared.",
+      "Module-level state and mutable defaults survive between tests in the same process."
+    ],
+    "what_not_to_test": [
+      "That Pydantic validates types, or that FastAPI parses a path parameter.",
+      "Generated OpenAPI output, unless it is a published contract.",
+      "Alembic migration files as units - exercise them by running them."
+    ],
     "notes": "Prefer FastAPI's TestClient for integration tests over mocking the router - it exercises dependency overrides, validation and serialization, which is where the real bugs are. Read pyproject.toml for the configured runner and typechecker before assuming these commands."
   },
   "growth_thresholds": {
@@ -81,6 +173,138 @@
     "extract_service_layer": "an endpoint function exceeds 40 lines, which means business logic has leaked into the transport layer",
     "split_feature": "a feature package exceeds 15 files",
     "extract_package": ">=2 features import the same internal module"
+  },
+  "architecture": {
+    "recommended_by": "community",
+    "source_url": "https://fastapi.tiangolo.com/tutorial/bigger-applications/",
+    "pattern": "routers with a service layer",
+    "folder_strategy": "feature-first",
+    "layers": [
+      {
+        "name": "Router",
+        "holds": "path operations, request/response models, dependencies",
+        "must_not": "hold business rules - an endpoint past 40 lines has absorbed the service"
+      },
+      {
+        "name": "Service",
+        "holds": "business rules",
+        "must_not": "import fastapi - a module that raises HTTPException is not a service"
+      },
+      {
+        "name": "Repository / data access",
+        "holds": "queries and persistence",
+        "must_not": "contain business rules"
+      },
+      {
+        "name": "Schemas",
+        "holds": "Pydantic models for the transport contract",
+        "must_not": "double as ORM models - one changes for the API, the other for the database"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Routers only",
+        "use_when": "a small service with few rules",
+        "cost": "rules end up in endpoints and become unreachable from a worker or a CLI"
+      },
+      {
+        "name": "Routers plus a service layer",
+        "use_when": "the same rules serve HTTP and anything else",
+        "cost": "one more hop, unnecessary while HTTP is the only caller"
+      }
+    ],
+    "rules": [
+      "A path operation does transport only: validate, delegate, shape the response.",
+      "A service module never imports fastapi. Raising HTTPException from a service ties business rules to the web layer.",
+      "Transport schemas and database models are separate types even when identical - they change for different reasons.",
+      "Dependencies are the injection seam. Anything the tests need to replace is a dependency, not a module-level import."
+    ],
+    "component_library": "Not applicable - backend stack.",
+    "needs_verification": true,
+    "notes": "FastAPI documents a bigger-applications router layout but does not prescribe a service layer. The service-layer rules here are the mentor's judgment, not the maintainers' - present them as such."
+  },
+  "key_decisions": [
+    {
+      "decision": "Sync or async throughout",
+      "why_it_is_forced": "FastAPI supports both, and mixing them badly blocks the event loop with no visible error.",
+      "options": [
+        "async throughout",
+        "sync throughout",
+        "mixed deliberately"
+      ],
+      "reasonable_default": "Pick one for data access and stay with it.",
+      "cost_of_getting_it_wrong": "A blocking call inside an async path operation stalls every concurrent request - it looks like a performance problem, not a bug."
+    },
+    {
+      "decision": "ORM and session lifecycle",
+      "why_it_is_forced": "No ORM is bundled, and where a session opens and closes is not decided for you.",
+      "options": [
+        "SQLAlchemy",
+        "SQLModel",
+        "Tortoise",
+        "raw asyncpg"
+      ],
+      "reasonable_default": "Session per request, provided as a dependency.",
+      "cost_of_getting_it_wrong": "A session shared across requests leaks data between users; one never closed exhausts the pool under load."
+    },
+    {
+      "decision": "Schema versus model separation",
+      "why_it_is_forced": "Pydantic schemas and ORM models look interchangeable and are not.",
+      "options": [
+        "separate types",
+        "shared types"
+      ],
+      "reasonable_default": "Separate. They change for different reasons.",
+      "cost_of_getting_it_wrong": "Shared types turn a database column rename into an unintended API breaking change."
+    },
+    {
+      "decision": "Authentication and authorization",
+      "why_it_is_forced": "FastAPI ships security utilities but no policy.",
+      "options": [
+        "OAuth2 with JWT",
+        "session cookies",
+        "API keys",
+        "delegated to a gateway"
+      ],
+      "reasonable_default": "Decide where the check lives - dependency, middleware or gateway - and keep it in one place.",
+      "cost_of_getting_it_wrong": "Authorization enforced in two places is authorization forgotten in one."
+    },
+    {
+      "decision": "Background work",
+      "why_it_is_forced": "BackgroundTasks, a worker queue and a scheduler have very different delivery guarantees.",
+      "options": [
+        "BackgroundTasks",
+        "Celery/RQ/Arq",
+        "external scheduler"
+      ],
+      "reasonable_default": "BackgroundTasks only for work that may be lost.",
+      "cost_of_getting_it_wrong": "BackgroundTasks vanish when the process restarts - work you assumed was queued was never durable."
+    }
+  ],
+  "operability": {
+    "failure_boundaries": [
+      "outbound HTTP clients",
+      "database sessions",
+      "cache and queue clients",
+      "third-party SDKs",
+      "background tasks"
+    ],
+    "observability": "Structured logging plus an exception handler registered on the app. Without a handler an unhandled error becomes a 500 with nothing recorded.",
+    "authorization": "A dependency on the path operation, or middleware. An endpoint with no security dependency is public - and looks identical to one that is public on purpose.",
+    "done_checks": [
+      "pytest",
+      "mypy .",
+      "ruff check .",
+      "the app boots with the real configuration",
+      "clean install from a fresh clone"
+    ],
+    "rules": [
+      "Every path operation states its authorization decision explicitly.",
+      "Every outbound call has a timeout. httpx without one waits forever and takes a worker with it.",
+      "Database sessions are per request and always closed, including on the error path.",
+      "Configuration is validated at boot, not read ad hoc with os.environ.get scattered through modules.",
+      "Schema changes ship with a reversible migration and a plan for the deploy window."
+    ]
   },
   "dead_code_risks": [
     "Endpoints registered by decorator and reachable only over HTTP",

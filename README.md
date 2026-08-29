@@ -129,6 +129,10 @@ Verified 2026-08-27. `needs_verification` means the entry exists but one field c
 be confirmed from a primary source - the mentor repeats that caveat to you rather than
 guessing.
 
+Every stack also carries four judgment fields - `architecture`, `testing` rules and traps,
+the `key_decisions` the stack forces with no default, and `operability`. That is the part a
+capable model cannot supply on its own.
+
 | Stack | Framework-team skill | Notes |
 |---|---|---|
 | Flutter | yes - `flutter/agent-plugins`, `dart-lang/skills` | Testing strategy is the documented gap |
