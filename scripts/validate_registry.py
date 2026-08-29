@@ -122,6 +122,15 @@ def check_stack_entry(name: str, data: dict) -> None:
         if not source_url.startswith("https://"):
             error(where, 'source_url must be an https URL, got "{}".'.format(source_url))
 
+    testing_block = data.get("testing") or {}
+    if not testing_block.get("rules"):
+        warn(name, "testing has no stack-specific rules. Generic doctrine already lives "
+                   "in references/quality-gate.md; without rules here the mentor adds "
+                   "nothing a capable model does not already do. See docs/ROADMAP.md.")
+    if not data.get("key_decisions"):
+        warn(name, "no key_decisions. These are the choices the stack forces with no "
+                   "framework default; without them, whether the agent asks is luck.")
+
     architecture = data.get("architecture")
     if architecture is None:
         warn(name, "no architecture block. The mentor then has nothing to say about which "

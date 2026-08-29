@@ -79,6 +79,47 @@ The rule for filling one in: **record which variant this framework's team recomm
 what breaks if you choose wrong. Never explain what the pattern is** - the model already
 knows, and duplicated documentation is what this project exists to avoid.
 
+## Test doctrine and forced decisions, still missing
+
+Two more fields landed alongside `architecture`, for the same reason: generic doctrine is
+something a capable model already approximates, so only stack-specific judgment changes an
+outcome.
+
+**`testing`** gained `layers[]` as objects (`belongs_here`, `does_not_belong_here`, `cost`,
+`signal_you_picked_wrong`), plus `rules`, `traps` and `what_not_to_test`. The traps field
+matters most: it records the ways a suite in this stack passes while the product is broken,
+or fails for a reason unrelated to the change. That is the knowledge a model is least
+likely to volunteer.
+
+**`key_decisions`** lists the choices a stack forces with no framework default - the ones a
+silent pick condemns a codebase to. Without this list, whether an agent asks about state
+management on a given day is luck.
+
+| Stack | `architecture` | `testing.rules` | `key_decisions` |
+|---|---|---|---|
+| Flutter | Done, verified | Done, verified | Done |
+| Angular | Drafted, unverified | **Missing** | **Missing** |
+| Next.js / React | **Missing** | **Missing** | **Missing** |
+| React Native / Expo | **Missing** | **Missing** | **Missing** |
+| NestJS | **Missing** | **Missing** | **Missing** |
+| FastAPI | **Missing** | **Missing** | **Missing** |
+| Spring Boot | **Missing** | **Missing** | **Missing** |
+| .NET | **Missing** | **Missing** | **Missing** |
+
+`scripts/validate_registry.py` warns on every gap above, so the list stays honest.
+
+**How to fill one without writing documentation.** The line is sharper than it looks:
+
+| Write this | Not this |
+|---|---|
+| "A test needing `pumpWidget` is testing the View - move it down" | "How to write a widget test" |
+| "Goldens are generated in CI only; a local golden gives an indeterminate failure" | "What golden tests are" |
+| "`pumpAndSettle` never returns on an indefinite animation" | "The `pumpAndSettle` API reference" |
+| "State management has no framework default; it reaches every view model" | "Comparison of Riverpod and Bloc" |
+
+The test: could the model have written this line itself from general knowledge? If yes, it
+does not belong in the registry.
+
 ## Definition of done
 
 A stack entry is complete when:

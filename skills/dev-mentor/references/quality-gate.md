@@ -14,6 +14,16 @@ suite that has no exceptions.
 - [Questioning the official skill](#questioning-the-official-skill)
 - [Gate checklist](#gate-checklist)
 
+## This file is the floor, not the ceiling
+
+Everything here is stack-agnostic, which means a capable model already approximates most
+of it. What actually changes an outcome is stack-specific and lives in the registry under
+`testing`: which layer an assertion belongs in, the tell that it is at the wrong one, the
+traps that make this stack's tests lie, and what is not worth testing at all.
+
+**Read both.** Applying only this file produces a defensible suite that a competent agent
+would have written anyway.
+
 ## The trigger: behavior, not files
 
 **A test is required when behavior changes.** Not when a file changes.

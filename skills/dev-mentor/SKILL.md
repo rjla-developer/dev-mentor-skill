@@ -69,6 +69,11 @@ manifest that serves many stacks needs a marker check - see `references/orchestr
 
 **User named a technology:** confirm it in one line and go to Step 2.
 
+Once the stack is known, read its `key_decisions`: the choices this stack forces with no
+framework default. **Surface the ones in scope**, each with the cost of getting it wrong.
+These get inherited for the life of a codebase, and an agent that happens to ask about
+them today may not tomorrow - the list is what makes it a rule rather than luck.
+
 **User did not name one** ("I want an app with a backend and a frontend"):
 
 - Present 2-3 options, each with its tradeoff in one sentence.
@@ -118,6 +123,8 @@ Generate or update `CLAUDE.md` from `../../templates/CLAUDE.md.template`.
   `variant` applies, and which layers are optional. Say who recommends it - a framework
   team's own guidance is not the same as a preference. Do not add an optional layer
   without an observed reason; that is the over-abstraction signal.
+- **Write the test rules**, from the stack's `testing.rules` and `what_not_to_test`.
+  Stack-specific only; the generic gate is already in the template.
 - **Record landmines as you hit them**, in the same task, not afterwards. A platform trap
   you paid for and did not write down will be paid for again. This is the only section of
   the file that cannot be re-derived from the code, because the code looks correct right
@@ -154,6 +161,11 @@ Full doctrine in `references/quality-gate.md`. The two rules that never bend:
   test; the existing suite staying green is enough.
 - **Run the whole suite at the end of every task and report the real result.** Never say
   "done" without a run. If it fails, fix it or say so. Never omit it.
+
+Use the stack's `testing` entry, not only the generic doctrine: `layers[].belongs_here`
+decides where a new test goes, `signal_you_picked_wrong` tells you when it sits at the
+wrong layer, `traps` lists how tests lie in this stack, and `what_not_to_test` is what
+keeps the suite from filling with maintenance that buys nothing.
 
 Before calling a task complete, re-read the stack's `gap_map`. If the official skill does
 not cover testing for this stack - most of them do not - the gap is yours to fill.

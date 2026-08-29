@@ -95,6 +95,17 @@ On trivial work, shorten the flow and say that you did.
 - No coverage percentage targets. A test earns its place by being behavioral, specific,
   deterministic and non-duplicative.
 
+## Testing rules
+
+<!--
+  From the stack's `testing.rules` and `what_not_to_test`. Stack-specific only - the
+  quality gate above already covers when a test is required at all.
+-->
+
+- {{TEST_RULE_1}}
+- {{TEST_RULE_2}}
+- Not worth testing here: {{WHAT_NOT_TO_TEST}}
+
 ## Never
 
 - {{NEVER_1}}

@@ -88,11 +88,36 @@
   ],
   "testing": {
     "layers": [
-      "unit",
-      "widget",
-      "golden",
-      "integration"
+      {
+        "name": "unit",
+        "belongs_here": "a single function, method or class with its dependencies mocked. View model logic, progress and pricing rules, parsing, error paths.",
+        "does_not_belong_here": "anything that needs a widget tree to observe",
+        "cost": "Flutter team: confidence low, maintenance low, fast. Cheapest place to enumerate branches.",
+        "signal_you_picked_wrong": "the test calls pumpWidget to check a value a function could return"
+      },
+      {
+        "name": "widget",
+        "belongs_here": "one widget: that its UI looks and interacts as expected. Taps, form validation surfacing, conditional rendering.",
+        "does_not_belong_here": "business rules reachable from a view model, and whole-flow behaviour",
+        "cost": "Flutter team: confidence higher, maintenance higher, still fast.",
+        "signal_you_picked_wrong": "the test enumerates business branches by tapping through the UI"
+      },
+      {
+        "name": "golden",
+        "belongs_here": "visual regression on stable, deliberate UI - a design system component, a screen whose layout must not drift",
+        "does_not_belong_here": "behaviour of any kind; a golden asserts pixels, not logic",
+        "cost": "high: every legitimate design change invalidates the file, and it fails for environment reasons",
+        "signal_you_picked_wrong": "the golden churns on changes nobody considers visual"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "a complete app or a large part of it: that widgets and services work together. The handful of flows whose breakage is an incident.",
+        "does_not_belong_here": "coverage of branches - that is what unit tests are for",
+        "cost": "Flutter team: confidence highest, maintenance highest, slow.",
+        "signal_you_picked_wrong": "the suite takes long enough that people stop running it locally"
+      }
     ],
+    "proportions": "Flutter team: a well-tested app has many unit and widget tests, tracked by code coverage, plus enough integration tests to cover all the important use cases. The shape is the point - heavy at the fast base, sparing at the slow tip.",
     "commands": {
       "full_suite": "flutter test",
       "unit_and_widget": "flutter test",
@@ -101,6 +126,27 @@
       "coverage": "flutter test --coverage",
       "analyze": "flutter analyze"
     },
+    "rules": [
+      "A test that needs pumpWidget is testing the View. If the same assertion can be made against the view model, move it down a layer.",
+      "Goldens are generated in CI, never on a developer machine. A golden produced locally and validated in CI gives an indeterminate failure nobody can act on.",
+      "Register a bundled test font in the test bootstrap. A golden that depends on system fonts fails across macOS, Linux and Windows for reasons unrelated to the change.",
+      "Never call pumpAndSettle on a tree with an indefinite animation - a loading spinner never settles and the test times out. Pump a fixed number of frames, or freeze the clock.",
+      "Never regenerate goldens to make a failure disappear without reading the diff. That is how a real regression gets committed as the new expected output.",
+      "Integration tests cover flows whose breakage is an incident. Adding one to raise coverage is the wrong reason."
+    ],
+    "traps": [
+      "pumpAndSettle times out on any indefinite animation - the most common false failure in the stack.",
+      "Goldens generated on one OS and validated on another differ through font rendering alone, so the suite goes red on a change that altered nothing visual.",
+      "Anything with a timestamp, a randomised layout, a mid-frame animation or a network image is a bad golden candidate: it fails on its own schedule.",
+      "Mocking a repository in a widget test hides the wiring the widget test existed to check - if everything below is mocked, the test asserts the mock.",
+      "A green suite with generated code out of date: build_runner output is committed, so stale *.g.dart passes tests and fails at runtime."
+    ],
+    "what_not_to_test": [
+      "That setState rebuilt, or that a StatelessWidget is stateless - that tests the framework, not the product.",
+      "Generated code (*.g.dart, *.freezed.dart, *.mocks.dart). It is the generator's contract, not yours.",
+      "Getters, constructors and pass-through methods with no branching.",
+      "Exact widget tree shape. It changes on every refactor and asserts implementation, not behaviour."
+    ],
     "notes": "Golden tests are visual regression, not behavior. They need a pinned CI environment to avoid cross-platform pixel differences. Never regenerate goldens to make a failure disappear without looking at the diff."
   },
   "growth_thresholds": {
@@ -170,5 +216,65 @@
     "Route names referenced as strings in a router table",
     "Classes registered by name in a service locator (get_it and similar)",
     "Platform channel handlers referenced only from Kotlin/Swift sources"
+  ],
+  "key_decisions": [
+    {
+      "decision": "State management",
+      "why_it_is_forced": "Flutter ships setState and nothing above it. Every app past one screen picks something, and the framework takes no position.",
+      "options": [
+        "setState only",
+        "Provider",
+        "Riverpod",
+        "Bloc/Cubit",
+        "signals"
+      ],
+      "reasonable_default": "The one the team already knows. There is no winner; there is a cost to using two.",
+      "cost_of_getting_it_wrong": "It reaches every view model and every test setup. Changing it later is a rewrite of the UI layer, not a refactor."
+    },
+    {
+      "decision": "Navigation",
+      "why_it_is_forced": "Navigator 1.0 and the Router API coexist, and deep links, web URLs and nested shells behave differently under each.",
+      "options": [
+        "Navigator 1.0",
+        "go_router",
+        "Router API directly",
+        "auto_route"
+      ],
+      "reasonable_default": "go_router when deep links or web are in scope; Navigator 1.0 when neither is.",
+      "cost_of_getting_it_wrong": "Retrofitting deep links onto Navigator 1.0 touches every route in the app."
+    },
+    {
+      "decision": "Domain layer: present or absent",
+      "why_it_is_forced": "The Flutter team marks the use-case layer optional, so it is a real choice, not an omission.",
+      "options": [
+        "two layers (UI + Data)",
+        "three layers (UI + Domain + Data)"
+      ],
+      "reasonable_default": "Two layers. Add the domain layer when a second view model needs the same composed logic.",
+      "cost_of_getting_it_wrong": "Adding it early is the over-abstraction signal; adding it late means moving logic out of several view models at once."
+    },
+    {
+      "decision": "Immutability and code generation",
+      "why_it_is_forced": "Dart has no built-in data classes, so equality, copyWith and JSON are either generated or hand-written.",
+      "options": [
+        "freezed + json_serializable",
+        "hand-written classes",
+        "dart_mappable"
+      ],
+      "reasonable_default": "Generation once the model count passes a handful; hand-written below that.",
+      "cost_of_getting_it_wrong": "Generation adds a build step to every developer and every CI run, and generated files must never be edited or deleted by hand."
+    },
+    {
+      "decision": "Persistence",
+      "why_it_is_forced": "Flutter bundles no storage layer.",
+      "options": [
+        "shared_preferences",
+        "sqflite/drift",
+        "Isar/Hive",
+        "remote only"
+      ],
+      "reasonable_default": "shared_preferences for flags and small records; a real database as soon as anything is queried.",
+      "cost_of_getting_it_wrong": "Migrating stored data in released apps needs a migration path you did not plan for."
+    }
   ]
 }
