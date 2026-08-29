@@ -75,6 +75,13 @@ skipped. Shouting in capitals does not fix this; it is a documented community fa
 So the cap is a `PostToolUse` hook on `Write` and `Edit` that exits 2 with an actionable
 message. Deterministic, not aspirational.
 
+**Do not add a `hooks` field to `.claude-plugin/plugin.json`.** `hooks/hooks.json` is
+loaded automatically by convention; declaring it in the manifest as well makes the plugin
+fail to load with *"Duplicate hooks file detected"* - the skill still loads, but the hook
+silently never fires, which is the worst possible failure for a guardrail. The manifest
+field is only for *additional* hook files. This was shipped broken in 0.1.0 and found the
+first time the plugin was installed from the marketplace.
+
 ## Degrees of freedom
 
 Calibrated per task, following the guidance that judgment work wants prose and

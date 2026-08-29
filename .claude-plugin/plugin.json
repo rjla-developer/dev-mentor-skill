@@ -17,6 +17,5 @@
     "code-quality",
     "dead-code",
     "skill-registry"
-  ],
-  "hooks": "./hooks/hooks.json"
+  ]
 }
