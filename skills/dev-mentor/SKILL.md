@@ -23,6 +23,7 @@ Load the rest only when the step needs it:
 
 | Step | File |
 |---|---|
+| 0 | `references/project-stage.md` - what the project owes, and what would be waste |
 | 1-3 | `references/orchestration.md` - stack detection, registry resolution, install etiquette |
 | 6 | `references/quality-gate.md` - what earns a test, which layer, running the suite |
 | 4, 7 | `references/growth-signals.md` - architectural health thresholds and evidence |
@@ -60,6 +61,12 @@ Before touching anything, state in a few lines:
 
 If more than one reading is reasonable, **present the readings; do not pick one in
 silence**. Silent picks are how an agent spends an hour building the wrong thing.
+
+**Establish the stage** - spike, prototype, pre-release, production, maintenance. Infer it
+from the signals in `references/project-stage.md`, state what you inferred, and let the
+user correct it. Everything after this is filtered through it: the same finding is a
+release blocker in production and pure noise on a spike. A mentor that cannot tell the
+difference gets muted, and then none of the rest matters.
 
 ### Step 1 - Detect or choose the stack
 
@@ -125,6 +132,9 @@ Generate or update `CLAUDE.md` from `../../templates/CLAUDE.md.template`.
   without an observed reason; that is the over-abstraction signal.
 - **Write the test rules**, from the stack's `testing.rules` and `what_not_to_test`.
   Stack-specific only; the generic gate is already in the template.
+- **Write the stage**, and a `## Deferred` section listing what was consciously skipped
+  and which stage makes it due. An undocumented deferral is indistinguishable from an
+  oversight and gets rediscovered at the worst moment.
 - **Record landmines as you hit them**, in the same task, not afterwards. A platform trap
   you paid for and did not write down will be paid for again. This is the only section of
   the file that cannot be re-derived from the code, because the code looks correct right

@@ -3,8 +3,17 @@
   "display_name": "Next.js / React",
   "category": "fullstack",
   "detection": {
-    "files": ["package.json", "next.config.js", "next.config.mjs", "next.config.ts"],
-    "markers": ["\"next\":", "next/navigation", "app/layout"]
+    "files": [
+      "package.json",
+      "next.config.js",
+      "next.config.mjs",
+      "next.config.ts"
+    ],
+    "markers": [
+      "\"next\":",
+      "next/navigation",
+      "app/layout"
+    ]
   },
   "last_verified": "2026-08-27",
   "official_skills": [
@@ -22,8 +31,20 @@
         "writing-guidelines",
         "vercel-deploy-claimable"
       ],
-      "covers": ["react-performance", "nextjs-data-fetching", "ui-code-review", "react-composition", "view-transitions", "vercel-cost-and-perf-audit"],
-      "does_not_cover": ["testing-strategy", "backend-architecture", "database-layer", "dead-code-hygiene"],
+      "covers": [
+        "react-performance",
+        "nextjs-data-fetching",
+        "ui-code-review",
+        "react-composition",
+        "view-transitions",
+        "vercel-cost-and-perf-audit"
+      ],
+      "does_not_cover": [
+        "testing-strategy",
+        "backend-architecture",
+        "database-layer",
+        "dead-code-hygiene"
+      ],
       "source_url": "https://github.com/vercel-labs/agent-skills",
       "notes": "Verified against the repository listing on 2026-08-27. There is no dedicated Next.js caching skill and no dedicated Next.js upgrade skill in this collection; caching guidance lives inside react-best-practices."
     },
@@ -32,8 +53,16 @@
       "owner": "Anthropic",
       "owner_kind": "vendor",
       "install": null,
-      "covers": ["visual-design-quality", "typography", "layout-craft"],
-      "does_not_cover": ["testing-strategy", "accessibility-audit", "performance-budget"],
+      "covers": [
+        "visual-design-quality",
+        "typography",
+        "layout-craft"
+      ],
+      "does_not_cover": [
+        "testing-strategy",
+        "accessibility-audit",
+        "performance-budget"
+      ],
       "source_url": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
       "needs_verification": true,
       "notes": "Ships bundled with several clients, so an explicit install command may be unnecessary or may differ per client. Check whether it is already available before recommending an install."
@@ -43,8 +72,15 @@
       "owner": "Anthropic",
       "owner_kind": "vendor",
       "install": null,
-      "covers": ["playwright-driven-ui-verification", "browser-log-capture", "screenshot-verification"],
-      "does_not_cover": ["unit-testing", "test-strategy"],
+      "covers": [
+        "playwright-driven-ui-verification",
+        "browser-log-capture",
+        "screenshot-verification"
+      ],
+      "does_not_cover": [
+        "unit-testing",
+        "test-strategy"
+      ],
       "source_url": "https://github.com/anthropics/skills/tree/main/skills/webapp-testing",
       "needs_verification": true
     }
@@ -65,7 +101,42 @@
     }
   ],
   "testing": {
-    "layers": ["unit", "component", "integration", "e2e"],
+    "layers": [
+      {
+        "name": "unit",
+        "belongs_here": "a single function, hook or component in isolation - business rules, formatting, reducers",
+        "does_not_belong_here": "anything crossing the server/client boundary",
+        "cost": "cheap to write and run",
+        "signal_you_picked_wrong": "the test mocks fetch, the router and the session just to reach one assertion"
+      },
+      {
+        "name": "component",
+        "belongs_here": "how a component renders, reacts to props, and responds to user events - the presentation rules",
+        "does_not_belong_here": "async Server Components; tooling support is incomplete",
+        "cost": "moderate; needs a DOM environment",
+        "signal_you_picked_wrong": "you are asserting the DOM structure instead of the behaviour a user depends on"
+      },
+      {
+        "name": "integration",
+        "belongs_here": "several units working together - components, hooks and functions in one flow",
+        "does_not_belong_here": "enumerating branches; that is unit work",
+        "cost": "slower, more setup"
+      },
+      {
+        "name": "e2e",
+        "belongs_here": "user flows in a production-like environment, and - per the Next.js team - async Server Components, which unit tooling does not fully support",
+        "does_not_belong_here": "coverage",
+        "cost": "slowest and most brittle; keep it to flows whose breakage is an incident"
+      },
+      {
+        "name": "snapshot",
+        "belongs_here": "almost nothing by default",
+        "does_not_belong_here": "anything you would not review character by character on a diff",
+        "cost": "cheap to create, expensive to keep honest - snapshots get regenerated unread",
+        "signal_you_picked_wrong": "the review comment is 'snapshot updated' with no one having looked"
+      }
+    ],
+    "proportions": "Next.js team: no stated proportions. They do state one placement rule - prefer End-to-End over unit testing for async Server Components, because some tools do not fully support them yet.",
     "commands": {
       "full_suite": "npm test",
       "e2e": "npx playwright test",
@@ -73,6 +144,26 @@
       "lint": "npm run lint",
       "build": "npm run build"
     },
+    "rules": [
+      "Test async Server Components end to end, not with unit tooling. The Next.js team says support is incomplete; a passing unit test there proves less than it appears to.",
+      "Read package.json before assuming a runner. Jest, Vitest, Playwright and Cypress are all documented options and the project picked one.",
+      "A green build is not a green suite. Run both - next build catches type and import errors that tests never reach.",
+      "Test the server/client boundary explicitly: that a server action rejects an unauthorized caller, and that no secret is reachable from a client component.",
+      "Regenerating a snapshot without reading the diff is the same failure as regenerating a golden. If nobody reads it, delete the snapshot instead."
+    ],
+    "traps": [
+      "Mocking fetch in a component test hides the boundary the test existed to check. If everything server-side is mocked, the test asserts the mock.",
+      "async Server Components appear testable under unit tooling and quietly do not behave the way they do at runtime.",
+      "Caching makes a test pass against a stale value: a test that reads through the framework cache can pass after the underlying data changed.",
+      "Snapshot tests turn a real regression into a diff people approve without reading.",
+      "A component test that renders a client component pulls its whole import graph, so a passing test says nothing about the bundle it just grew."
+    ],
+    "what_not_to_test": [
+      "That a page renders without crashing, with no assertion about what it shows.",
+      "Framework behaviour: that a layout wraps a page, that a route group does not affect the URL.",
+      "Exact DOM structure. It changes on every markup refactor and asserts implementation.",
+      "Generated types and route manifests."
+    ],
     "notes": "Runner varies by project (vitest, jest, node:test). Read package.json scripts before assuming a command; never guess it. A green build is not a green suite - run both."
   },
   "growth_thresholds": {
@@ -81,11 +172,125 @@
     "extract_package": ">=2 apps or features import the same internal module",
     "split_client_boundary": "a client component tree exceeds 3 levels of prop drilling"
   },
+  "architecture": {
+    "recommended_by": "framework-team",
+    "source_url": "https://nextjs.org/docs/app/getting-started/project-structure",
+    "pattern": "none - the Next.js team is explicitly unopinionated about organisation",
+    "folder_strategy": "unspecified",
+    "layers": [
+      {
+        "name": "Route segment (app/)",
+        "holds": "layout, page, loading, error, not-found, route - the routing surface. A route is not public until page or route exists, so anything else colocated here is safe.",
+        "must_not": "hold logic that a route handler or server action does not need; colocation is permitted, not a licence to put the domain in app/"
+      },
+      {
+        "name": "Server boundary",
+        "holds": "data access, secrets, authorization. Only what page/route returns reaches the client.",
+        "must_not": "leak a secret or an unauthorized query across a 'use client' boundary - this is the most expensive mistake in the stack and nothing warns you"
+      },
+      {
+        "name": "Client components",
+        "holds": "interactivity, browser APIs, local state",
+        "must_not": "become the default; every 'use client' pushes its whole import graph to the browser"
+      },
+      {
+        "name": "Shared code",
+        "optional": true,
+        "holds": "components and lib code used by more than one route",
+        "must_not": "exist as a folder before a second route needs it"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Project files outside app/",
+        "use_when": "you want app/ to be purely routing and everything else in root folders",
+        "cost": "a feature's UI, data and route live in three places; renaming a feature touches all three"
+      },
+      {
+        "name": "Project files in top-level folders inside app/",
+        "use_when": "small app, one team, everything shared",
+        "cost": "the shared folders become the whole app and stop meaning anything"
+      },
+      {
+        "name": "Split by feature or route",
+        "use_when": "features are genuinely independent; globally shared code stays at the app root and the rest colocates in the segment that uses it",
+        "cost": "you must decide, per file, whether it is shared - and that decision gets made badly under deadline"
+      }
+    ],
+    "rules": [
+      "Next.js is unopinionated about structure, so the project must state its strategy and stay consistent. The framework team's own guidance is to pick one and be consistent - an inconsistent codebase is the failure mode here, not the wrong choice.",
+      "A route is not public until page.js or route.js exists, so colocation inside app/ is safe. Use it before inventing a parallel folder tree.",
+      "Use a private folder (_folder) for anything non-routable that could collide with a future Next.js file convention.",
+      "Use route groups ((group)) to organise or to give a subset of routes its own layout. They do not change the URL.",
+      "Every 'use client' is a boundary decision, not a formality: it ships its import graph to the browser. Push it as far down the tree as the interactivity actually needs.",
+      "Every server action and route handler states its authorization decision explicitly, including 'public on purpose'. An unguarded handler looks exactly like an intentionally public one."
+    ],
+    "component_library": "Promote to shared at >=3 occurrences across >=2 routes or features. Below that, colocate in the segment that uses it - the framework makes colocation safe precisely so you do not have to decide early.",
+    "notes": "The docs name three organisation strategies and decline to recommend one: 'choose a strategy that works for you and your team and be consistent across the project.' The mentor's job here is not to pick for the user - it is to make sure a choice is made, written down, and followed."
+  },
   "dead_code_risks": [
     "Route files, layouts, loading and error boundaries - reachable by filesystem convention, never by import",
     "generateStaticParams, generateMetadata and other convention-named exports",
     "Server actions referenced only from a form action attribute",
     "Components referenced only via next/dynamic with a string path",
     "Public API surface of a workspace package consumed by another workspace"
+  ],
+  "key_decisions": [
+    {
+      "decision": "File organisation strategy",
+      "why_it_is_forced": "The Next.js team is explicitly unopinionated and names three strategies without recommending one. Nothing picks for you.",
+      "options": [
+        "project files outside app/",
+        "top-level folders inside app/",
+        "split by feature or route"
+      ],
+      "reasonable_default": "Split by feature or route: colocate what one route uses, keep genuinely shared code at the app root.",
+      "cost_of_getting_it_wrong": "The real cost is not the wrong choice, it is an inconsistent one. Half a codebase per-feature and half by-type means nobody can predict where a file lives."
+    },
+    {
+      "decision": "Rendering and caching per route",
+      "why_it_is_forced": "Static, dynamic and revalidated rendering are per-route decisions, and the default is not obvious from the code.",
+      "options": [
+        "static",
+        "dynamic",
+        "revalidated (ISR)",
+        "streamed with Suspense"
+      ],
+      "reasonable_default": "Static unless the route needs per-request data; make dynamic an explicit decision, not an accident.",
+      "cost_of_getting_it_wrong": "A route that went dynamic by accident costs on every request and shows stale or personalised data to the wrong people."
+    },
+    {
+      "decision": "Where the server/client boundary sits",
+      "why_it_is_forced": "'use client' is a per-file choice with no framework guardrail, and it is transitive over the import graph.",
+      "options": [
+        "client components at the leaves",
+        "client boundary at the page level"
+      ],
+      "reasonable_default": "As deep in the tree as the interactivity actually needs.",
+      "cost_of_getting_it_wrong": "A boundary set too high ships the whole subtree to the browser and can carry a secret with it. Moving it down later means rewriting the data flow."
+    },
+    {
+      "decision": "How mutations happen",
+      "why_it_is_forced": "Server actions and route handlers both work, and they have different authorization and error-handling shapes.",
+      "options": [
+        "server actions",
+        "route handlers",
+        "both, split by case"
+      ],
+      "reasonable_default": "Server actions for form-driven mutations; route handlers when a non-browser client also calls it.",
+      "cost_of_getting_it_wrong": "Mixed conventions mean authorization is enforced in two places and forgotten in one."
+    },
+    {
+      "decision": "Deployment target",
+      "why_it_is_forced": "Which Next.js features are available depends on where it runs; a static export cannot do what a Node server can.",
+      "options": [
+        "Vercel",
+        "self-hosted Node",
+        "container",
+        "static export"
+      ],
+      "reasonable_default": "Decide before building, not after.",
+      "cost_of_getting_it_wrong": "Discovering at deploy time that the target does not support a feature you built on means rewriting those routes."
+    }
   ]
 }

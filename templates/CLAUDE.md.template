@@ -15,6 +15,12 @@
 
 {{ONE_SENTENCE_WHAT_THIS_IS}}
 
+## Stage
+
+{{spike | prototype | pre-release | production | maintenance}} — {{WHO_DEPENDS_ON_IT}}
+
+<!-- This line calibrates every recommendation. Update it when the stage changes. -->
+
 ## Stack
 
 - {{STACK_AND_VERSION}}
@@ -105,6 +111,15 @@ On trivial work, shorten the flow and say that you did.
 - {{TEST_RULE_1}}
 - {{TEST_RULE_2}}
 - Not worth testing here: {{WHAT_NOT_TO_TEST}}
+
+## Deferred
+
+<!--
+  What was consciously skipped, and the stage that makes it due. A deferral written down
+  is a decision; an undocumented one is indistinguishable from an oversight.
+-->
+
+- {{WHAT}} — due at {{STAGE}}. {{WHAT_IS_MISSING_TODAY}}
 
 ## Never
 
