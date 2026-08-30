@@ -43,6 +43,35 @@ anything, including this.
 
 To disable or remove it later, run `/plugin` and use the panel.
 
+### Just trying it on one project
+
+You do not have to install it everywhere to see what it does.
+
+**Easiest - scoped to one repository.** Run the same two commands from inside that project
+and pick **local scope** ("Install for you, in this repo only") when the installer asks. It
+stays out of your other projects, and `/plugin` removes it.
+
+**Nothing installed at all - one session only.** Clone this repository and point Claude
+Code at the clone:
+
+```bash
+git clone https://github.com/rjla-developer/dev-mentor-skill.git
+```
+
+```bash
+claude --plugin-dir /absolute/path/to/dev-mentor-skill
+```
+
+The plugin loads for that session and disappears when you close it. Nothing is written to
+your Claude Code configuration, and there is nothing to uninstall. Quote the path if it
+contains spaces.
+
+This is also the right way to try a modified version: edit the clone, restart the session,
+and the change is live without reinstalling anything.
+
+**How to tell it is active:** ask it anything and look at the end of the reply. If the
+three-line status block starting with 🧭 is there, it loaded.
+
 ## Getting started
 
 After installing, `dev-mentor` activates on its own whenever you ask for something that
@@ -215,6 +244,7 @@ If you are evaluating this, read the comparison before the rest of this README.
 | [docs/ROADMAP.md](docs/ROADMAP.md) | The 22 stacks still to cover |
 | [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) | **Start here** - what it is, what happens when you use it, and what it costs |
 | [docs/DEMO-COMPARISON.md](docs/DEMO-COMPARISON.md) | The same task run three times, including the predictions that failed |
+| [evals/scorecard.md](evals/scorecard.md) | A 14-row checklist for scoring a run, with the recorded scores so far |
 | [evals/](evals/) | Scenarios, written before the documentation |
 
 ## Credits

@@ -15,6 +15,15 @@ Each scenario is a JSON file with:
 | `failure_modes` | Behaviors that mean the skill regressed |
 | `scored_by` | `human` (judgment call) or `script` (deterministic) |
 
+## Scoring a run
+
+[`scorecard.md`](scorecard.md) is a fixed 14-row checklist for judging one run in about
+five minutes, plus the controls - checks every baseline passes, which are therefore not
+evidence for the tool. It carries the recorded scores for the three runs so far.
+
+Use it whenever you change the skill: the number is comparable across runs in a way that
+one person's impression of a transcript is not.
+
 ## How to run one
 
 There is no automated harness yet — this is deliberate. Run the scenario by hand in a

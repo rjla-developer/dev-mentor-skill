@@ -149,6 +149,15 @@ researches live, writes a `CLAUDE.md`, and tests things the baseline skipped. Th
 point of it, and it is not free. To see the actual split for a session, run
 `/explain-usage` in that session rather than trusting an estimate.
 
+## Trying it without installing it
+
+`claude --plugin-dir /path/to/a/clone` loads the plugin for one session only. Nothing is
+written to your configuration and there is nothing to uninstall. It is also how you test a
+change to the plugin itself: edit the clone, restart, done.
+
+For a single project, install it with **local scope** instead - it stays out of your other
+repositories.
+
 ## The evidence
 
 [`DEMO-COMPARISON.md`](DEMO-COMPARISON.md) is the running record of the same build task run
