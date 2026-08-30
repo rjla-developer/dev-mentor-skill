@@ -17,10 +17,31 @@ finding is the constraint this whole project is built around.
 
 ## Install
 
+Two commands, typed in an interactive Claude Code session in your terminal - not Claude
+Desktop, not claude.ai. The first registers the catalog, the second installs from it.
+
 ```bash
 /plugin marketplace add rjla-developer/dev-mentor-skill
+```
+
+```bash
 /plugin install dev-mentor@dev-mentor-marketplace
 ```
+
+The installer asks where to install it. **Pick user scope** unless you have a reason not
+to:
+
+| Scope | What it means |
+|---|---|
+| **For you (user)** | Available in all your projects. The normal choice. |
+| For all collaborators (project) | Committed to the repository - everyone on the team gets it |
+| For you, this repo only (local) | Just you, just here |
+
+Claude Code shows a trust warning before installing any plugin, from anyone. That notice is
+standard and is not specific to this one - but do read the source before you install
+anything, including this.
+
+To disable or remove it later, run `/plugin` and use the panel.
 
 ## Getting started
 
@@ -166,6 +187,24 @@ catalog stops being trusted.
   [.github/ISSUE_TEMPLATE/stale-skill.yml](.github/ISSUE_TEMPLATE/stale-skill.yml)
 - Good first contributions → [docs/ROADMAP.md](docs/ROADMAP.md)
 
+## Does it actually help?
+
+The same build task was run three times and recorded in
+[docs/DEMO-COMPARISON.md](docs/DEMO-COMPARISON.md), against a baseline of Claude Code with
+57 personal skills already installed.
+
+**What the evidence supports:** assumptions stated before the work rather than after; a
+live catalog consulted and its gaps declared; ambiguous requirements decomposed into
+enumerated readings with their costs; a `CLAUDE.md` the next session can read; findings
+carrying `file:line` evidence; and - after the operability work - test coverage of untrusted
+input reaching an output format, and of every stated failure policy.
+
+**What it does not support:** that it writes better code, that it stops an agent deciding
+silently, or that its reasoning is always evidence-backed. All three are recorded as failed
+predictions, with the counter-evidence, in that same file.
+
+If you are evaluating this, read the comparison before the rest of this README.
+
 ## Documentation
 
 | | |
@@ -174,6 +213,8 @@ catalog stops being trusted.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the pieces fit and why |
 | [docs/REGISTRY.md](docs/REGISTRY.md) | How the catalog works and stays current |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | The 22 stacks still to cover |
+| [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) | **Start here** - what it is, what happens when you use it, and what it costs |
+| [docs/DEMO-COMPARISON.md](docs/DEMO-COMPARISON.md) | The same task run three times, including the predictions that failed |
 | [evals/](evals/) | Scenarios, written before the documentation |
 
 ## Credits
