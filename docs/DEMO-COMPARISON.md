@@ -176,6 +176,56 @@ The single most concrete artifact difference is `CLAUDE.md`. Run A's next sessio
 cold - it will re-derive the build commands, the layer boundaries, and the three judgment
 calls it already made. Run B's next session reads them.
 
+## Run C - dev-mentor after the operability work
+
+Same prompt, same directory pattern, Claude Code 2.1.251, stage answered `prototype`.
+29 tests in 4 files, 498 lines. Typecheck and build clean.
+
+**Two category rules fired visibly, and both were written from run A's wins.**
+
+`"Untrusted text reaching an output format is escaped, and the escaping has its own test"`
+produced a dedicated `test/ssml.test.ts` with six tests, including double-escaping of
+ampersands and neutralising SSML the model itself put in its reply. Run A had one such
+test; run B had none.
+
+`"Every stated failure policy has a test: the timeout path, the retry exhaustion path, the
+degraded path"` produced eight tests on the correction client alone - clamping the attempt
+timeout to the remaining budget, refusing to retry when the budget cannot pay for another
+attempt, and giving up without calling the API when the deadline has already passed.
+
+The stage answer also did its job: observability, durable persistence, authorization and
+cross-session history were all deferred with the stage that makes them due, rather than
+demanded at a prototype.
+
+### What run A still covers that run C does not
+
+| Area | A | C |
+|---|---|---|
+| Persistent store not clobbering neighbours | tested | store deferred |
+| Reading a record written by an earlier version | tested | store deferred |
+| Speech content variety (correction cap, session close summary) | 7 speech tests | 6, all on escaping |
+
+The first two are not misses. Run C deferred durable persistence and wrote the deferral
+down; run A built it and tested it. **Which is better depends on the stage, and run C was
+told prototype.** The comparison to draw is not "C tested less" but "C took on less scope
+and said so".
+
+### A finding against dev-mentor itself
+
+`src/domain/progress.ts` in run C carries this comment:
+
+> *"Integer comparison on purpose: `count / total >= 0.30` is a float compare, and the
+> boundary case (3 of 10) is exactly where this rule is supposed to be exact."*
+
+Run A used `REINFORCE_THRESHOLD = 0.3` and a float compare. Testing both forms over every
+`count/total` pair up to total 2000 - roughly two million comparisons - produced **zero
+discrepancies**. Integer arithmetic is better practice and self-documenting, but the
+justification as written claims a defect that does not exist at any realistic input.
+
+This is the failure mode the Research-to-Action Gate exists to prevent, appearing in the
+output of the tool that enforces it. Plausible reasoning stated with more confidence than
+the evidence supports. Recorded here rather than quietly dropped.
+
 ## Predictions that failed
 
 Recorded because a project whose premise is evidence over opinion has to publish the
@@ -217,8 +267,10 @@ of those.
 - "Produces better code." The baseline's output is strong.
 - "Without it, the agent decides for you." The baseline asked.
 - "Without it, tests do not get run." The baseline ran them.
-- "It writes better tests." The baseline's suite is broader and covers failure modes
-  dev-mentor's run missed entirely.
+- "It writes better tests." True of run C only in the two areas that were written down as
+  rules, and only against run B. Run A remains broader where it took on more scope.
+- "Its reasoning is always evidence-backed." Run C produced a confident justification for
+  integer arithmetic that two million test comparisons do not support.
 
 ## Control caveats
 
