@@ -152,6 +152,13 @@
   "category_defaults": {
     "_comment": "Fallback for a stack with no entry of its own - the common case. Weaker than a real entry, far stronger than stack-agnostic doctrine. The mentor applies these, then researches the framework's own guidance live, and says which is which.",
     "backend": {
+      "architecture_rules": [
+        "Transport does transport only. Business rules live in a module that imports no web framework - if the rule can only be reached through a request object, it can only be tested through one.",
+        "Testability is the cheapest architecture metric there is. When a rule needs the framework booted to verify, the rule is in the wrong place, not the test.",
+        "Persistence sits behind an interface with an in-memory implementation, so the suite runs with no credentials and no container.",
+        "Configuration is read in one place and validated at boot. Values read ad hoc across modules fail at the first request instead of the deploy.",
+        "Nothing durable lives in process memory. Containers, workers and serverless instances all restart and take it with them."
+      ],
       "key_decisions": [
         "Persistence: what stores state, and what happens to it between deploys or cold starts.",
         "Authorization model: how an entry point declares who may call it, including 'public on purpose'.",
@@ -166,9 +173,22 @@
         "No credential in the repository, in a log line, or in anything sent to a client.",
         "An unhandled failure produces a record somewhere a human will see, with enough context to identify the request.",
         "State that must outlive a process restart is not held in process memory. Serverless containers and worker restarts both take it with them."
+      ],
+      "testing_rules": [
+        "Untrusted text that reaches an output format - markup, SSML, SQL, a shell, a template - is escaped, and the escaping has its own test. Input from a user or from a model is untrusted.",
+        "A write to shared storage does not clobber neighbouring keys, and there is a test that proves it.",
+        "Reading a record written by an earlier version does not crash. Data outlives deploys; test the old shape.",
+        "Every entry point has a test for its failure response, not only its success response.",
+        "Every stated failure policy has a test: the timeout path, the retry exhaustion path, the degraded path. A policy nobody exercised is a hope."
       ]
     },
     "frontend": {
+      "architecture_rules": [
+        "Presentation is separate from data fetching. A component that fetches and renders cannot be reused or tested without the network.",
+        "Business rules live outside components, in plain modules that render nothing.",
+        "Shared state has exactly one owner. Two places writing the same state is a bug waiting for a race.",
+        "No secret in anything the bundler can reach. Everything in the bundle ships to the browser."
+      ],
       "key_decisions": [
         "State management: what holds shared state, since almost no framework decides this for you.",
         "Routing and navigation, including deep links and browser history.",
@@ -183,9 +203,20 @@
         "A state change a user needs to know about is announced, not only displayed - the error message that only renders in colour does not exist for part of your audience.",
         "No secret, key or token reachable from code that ships to the browser.",
         "A user-visible failure says what happened and what to do next. 'Something went wrong' is not a failure policy."
+      ],
+      "testing_rules": [
+        "Presentation rules are testable and are worth testing: that the error shows, that the button disables while submitting, that focus lands where it should.",
+        "Every async view has its loading, empty and error states covered - the success path alone is how blank screens ship.",
+        "Untrusted content rendered as markup is escaped, with a test.",
+        "Keyboard reachability is a presentation rule like any other. Test it the same way.",
+        "Do not assert DOM structure. It changes on every markup refactor and proves nothing about behaviour."
       ]
     },
     "fullstack": {
+      "architecture_rules": [
+        "Apply both the backend and frontend rules; the boundary between them is where the expensive mistakes live.",
+        "Anything crossing to the client is a deliberate export. Assume everything reachable from client code is public."
+      ],
       "key_decisions": [
         "Where the server/client boundary sits, and what crosses it.",
         "How mutations happen, and where their authorization is enforced.",
@@ -195,9 +226,18 @@
       ],
       "operability_rules": [
         "Apply both the backend and frontend rules. The boundary between them is where the expensive mistakes live: a secret crossing to the client, or an action that authorizes on the wrong side."
+      ],
+      "testing_rules": [
+        "Test the boundary explicitly: that a mutation rejects an unauthorized caller, and that no secret is reachable from client code.",
+        "Apply both the backend and frontend testing rules."
       ]
     },
     "mobile": {
+      "architecture_rules": [
+        "Business rules live in plain modules, not in screens. A screen is reached by navigation and cannot be imported cheaply for a test.",
+        "Native and platform access goes through a wrapper the tests can replace, or the suite only runs on a device.",
+        "Stored data has a versioned shape from the first release. You cannot migrate what you did not version."
+      ],
       "key_decisions": [
         "Offline behaviour: what happens to an in-flight write when the network drops.",
         "Local storage, and how stored data migrates when the app updates on a device you do not control.",
@@ -212,9 +252,20 @@
         "A denied permission is a supported path, not a crash.",
         "Assume several app versions are live at once. A server change that only works with the newest client breaks the rest.",
         "Errors are reported off-device or they are invisible to you."
+      ],
+      "testing_rules": [
+        "The offline path has a test, even when the decision is to fail loudly.",
+        "Reading data written by a previous app version has a test. Users skip versions and never reinstall.",
+        "The denied-permission path has a test. It is a supported path, not an edge case.",
+        "Device end-to-end covers incident-level flows only - it is the slowest and flakiest layer available to you."
       ]
     },
     "infra": {
+      "architecture_rules": [
+        "Modules declare their inputs and outputs explicitly. An implicit dependency on ambient state is a change nobody can review.",
+        "Secrets are referenced, never inline.",
+        "A change that cannot be applied twice safely cannot be retried, and every automated system retries."
+      ],
       "key_decisions": [
         "Where state lives and who may change it.",
         "Secret storage and rotation.",
@@ -227,6 +278,10 @@
         "A rollback nobody has performed is not a rollback plan.",
         "Secrets are referenced, never committed.",
         "A change that cannot be applied twice safely is a change that cannot be retried."
+      ],
+      "testing_rules": [
+        "A plan or dry run is the test. Read it before applying; that is the only place the blast radius is visible.",
+        "The rollback has been performed at least once. A rollback nobody has run is not a plan."
       ]
     }
   }

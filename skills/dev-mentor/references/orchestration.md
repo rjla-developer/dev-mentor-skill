@@ -133,9 +133,12 @@ stack-agnostic advice adds nothing - it is honest and useless at the same time.
 Do all five, in order:
 
 1. **Apply the category defaults.** `index.json` carries `category_defaults` keyed by
-   backend / frontend / fullstack / mobile / infra: the decisions any stack in that
-   category forces, and the operability rules that hold regardless of framework. These are
-   weaker than a real entry but far stronger than nothing.
+   backend / frontend / fullstack / mobile / infra, with four sets of rules that hold
+   regardless of framework: `architecture_rules`, `key_decisions`, `testing_rules` and
+   `operability_rules`. These are weaker than a real entry but far stronger than nothing,
+   and they cover the things that are true of every stack in that category - that untrusted
+   text reaching an output format must be escaped, that data outlives deploys, that a rule
+   needing the framework booted to verify is in the wrong place.
 2. **Research the framework's own guidance, live.** Look for the maintainers' architecture
    guide, testing guide and project-structure page. Ten minutes of reading turns "I have no
    entry" into "the maintainers recommend this, and here is the part they leave to you".
