@@ -163,6 +163,14 @@ already does - you will do it worse and the user will maintain the difference.
 Enforce, from `references/behavioral-rules.md`: simplest thing that works, surgical
 changes only, verifiable success criteria before you start.
 
+**On any front-end or mobile work, raise the async states as the feature is built, not at
+the gate afterwards.** Every asynchronous operation a user can see needs loading, empty,
+error and success - retrofitting the three that are missing means reworking the component,
+while deciding them up front costs nothing. The first time it comes up in a project, agree
+the loading affordance with the user - a progress bar with a percentage where progress is
+determinate, a skeleton or spinner where it is not - and write the answer into `CLAUDE.md`
+so it is settled once instead of per screen.
+
 ### Step 6 - Quality and delivery gates
 
 Full doctrine in `references/quality-gate.md`. The two rules that never bend:

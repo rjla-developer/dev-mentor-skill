@@ -285,6 +285,8 @@
       "flutter build (for each shipped platform)"
     ],
     "rules": [
+      "Every asynchronous operation a user can see declares four states: loading, empty, error and success. Empty is not success with no rows, and success on a mutation is a confirmation, not a silent return to normal.",
+      "Loading affordance matches what you know: a progress bar with a percentage only for determinate work; a skeleton or spinner otherwise. Never a percentage you cannot compute.",
       "Every Service states a timeout and a retry count. A Future with no timeout hangs the UI with no error to show.",
       "Every feature that writes data states its offline behaviour, even if the decision is to fail loudly.",
       "Stored data has a migration path. You cannot ask users to reinstall.",

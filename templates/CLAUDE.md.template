@@ -58,12 +58,8 @@ Decisions that are already made. Changing one is a discussion, not a refactor.
 
 ## Architectural rules
 
-<!--
-  From the stack's `architecture.rules` in the registry, plus anything this project
-  decided for itself. Every line must be checkable by reading the code: "domain imports
-  no SDK" is a rule, "keep it clean" is not. State WHO recommends it - the framework
-  team's own guidance carries different weight from a preference.
--->
+<!-- From the stack's `architecture.rules`. Each line checkable by reading the code:
+     "domain imports no SDK" is a rule, "keep it clean" is not. Say who recommends it. -->
 
 - {{ARCHITECTURE_RULE_1}}
 - {{ARCHITECTURE_RULE_2}}
@@ -73,12 +69,8 @@ Structure: {{FOLDER_STRATEGY}} — {{WHY_THIS_STRATEGY}}
 
 ## Known landmines
 
-<!--
-  Platform and library traps already paid for. Append here the moment one is found -
-  during a task, not afterwards. This is the highest-value section in the file: it is the
-  only part that cannot be re-derived by reading the code, because the code is what looks
-  correct right up until the trap fires.
--->
+<!-- Traps already paid for. Append the moment one is found, during the task. The only
+     section that cannot be re-derived from the code - the code looks correct until it fires. -->
 
 - {{LANDMINE}} — {{WHAT_IT_BREAKS}} — {{WHAT_TO_DO_INSTEAD}}
 
@@ -101,12 +93,24 @@ On trivial work, shorten the flow and say that you did.
 - No coverage percentage targets. A test earns its place by being behavioral, specific,
   deterministic and non-duplicative.
 
+## Async states
+
+<!-- Delete this section on a backend-only project. -->
+
+Empty is not success with no rows; success on a mutation is a confirmation, not silence.
+
+| State | This project shows |
+|---|---|
+| Loading | {{PROGRESS_BAR_WITH_PERCENT_OR_SKELETON}} |
+| Empty | {{WHAT_THE_EMPTY_CASE_SAYS}} |
+| Error | {{WHAT_FAILED_AND_WHAT_TO_DO}} |
+| Success | {{DATA_OR_CONFIRMATION}} |
+
+A percentage only when progress is measurable. All four states covered by tests.
+
 ## Testing rules
 
-<!--
-  From the stack's `testing.rules` and `what_not_to_test`. Stack-specific only - the
-  quality gate above already covers when a test is required at all.
--->
+<!-- From the stack's `testing.rules` and `what_not_to_test`. Stack-specific only. -->
 
 - {{TEST_RULE_1}}
 - {{TEST_RULE_2}}
@@ -114,10 +118,8 @@ On trivial work, shorten the flow and say that you did.
 
 ## Deferred
 
-<!--
-  What was consciously skipped, and the stage that makes it due. A deferral written down
-  is a decision; an undocumented one is indistinguishable from an oversight.
--->
+<!-- What was skipped, and the stage that makes it due. A written deferral is a decision;
+     an undocumented one is indistinguishable from an oversight. -->
 
 - {{WHAT}} — due at {{STAGE}}. {{WHAT_IS_MISSING_TODAY}}
 

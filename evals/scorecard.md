@@ -37,8 +37,9 @@ run passes measures nothing about the tool - those are listed further down as co
 | 12 | Untrusted input reaching an output format is escaped, **with its own test** | A test file or test case for the escaping |
 | 13 | Every stated failure policy has a test | Timeout path, retry exhaustion, degraded path |
 | 14 | It stated what it had **not** verified or measured | An explicit limitation, not an omission |
+| 15 | *(front-end and mobile only)* Every async operation has loading, empty, error and success, each covered by a test | Look for the empty case specifically - it is the one collapsed into success |
 
-**Score:** count of passes out of 14.
+**Score:** count of passes out of 14, or out of 15 on a front-end or mobile project.
 
 ## Controls: checks that did not discriminate
 

@@ -195,18 +195,20 @@
         "Data fetching and caching: what is fresh, what is stale, and who decides.",
         "Styling approach, and where the component library boundary sits.",
         "Form handling and validation: where the rules live and how errors surface.",
-        "Build and deploy target, which determines which framework features are even available."
+        "Build and deploy target, which determines which framework features are even available.",
+        "Loading affordance house style: progress bar with percentage for determinate work, skeleton or spinner otherwise. Agree it once with the user and write it into CLAUDE.md rather than deciding per screen."
       ],
       "operability_rules": [
-        "Every asynchronous view declares three states: loading, empty, and error. A view with only a success state will show a blank screen in production.",
+        "Every asynchronous operation a user can see declares four states: loading, empty, error and success. Empty is not success with no rows, and success on a mutation is a confirmation, not a silent return to normal.",
+        "The loading affordance matches what you actually know: a progress bar with a percentage only when progress is determinate (upload, batch, known steps); a skeleton or spinner when it is not. A percentage you cannot compute is invented, and inventing it teaches the user your indicators mean nothing.",
         "Every interactive element is reachable and operable by keyboard, and focus order follows the visual order.",
         "A state change a user needs to know about is announced, not only displayed - the error message that only renders in colour does not exist for part of your audience.",
         "No secret, key or token reachable from code that ships to the browser.",
         "A user-visible failure says what happened and what to do next. 'Something went wrong' is not a failure policy."
       ],
       "testing_rules": [
+        "All four async states are covered by tests - loading, empty, error and success. They are presentation rules, and presentation rules are testable.",
         "Presentation rules are testable and are worth testing: that the error shows, that the button disables while submitting, that focus lands where it should.",
-        "Every async view has its loading, empty and error states covered - the success path alone is how blank screens ship.",
         "Untrusted content rendered as markup is escaped, with a test.",
         "Keyboard reachability is a presentation rule like any other. Test it the same way.",
         "Do not assert DOM structure. It changes on every markup refactor and proves nothing about behaviour."
@@ -222,12 +224,16 @@
         "How mutations happen, and where their authorization is enforced.",
         "Rendering and caching strategy per route.",
         "Persistence and migrations.",
-        "Everything in the backend and frontend lists that the project actually uses."
+        "Everything in the backend and frontend lists that the project actually uses.",
+        "Loading affordance house style: progress bar with percentage for determinate work, skeleton or spinner otherwise. Agree it once with the user and write it into CLAUDE.md rather than deciding per screen."
       ],
       "operability_rules": [
+        "Every asynchronous operation a user can see declares four states: loading, empty, error and success. Empty is not success with no rows, and success on a mutation is a confirmation, not a silent return to normal.",
+        "The loading affordance matches what you actually know: a progress bar with a percentage only when progress is determinate (upload, batch, known steps); a skeleton or spinner when it is not. A percentage you cannot compute is invented, and inventing it teaches the user your indicators mean nothing.",
         "Apply both the backend and frontend rules. The boundary between them is where the expensive mistakes live: a secret crossing to the client, or an action that authorizes on the wrong side."
       ],
       "testing_rules": [
+        "All four async states are covered by tests - loading, empty, error and success. They are presentation rules, and presentation rules are testable.",
         "Test the boundary explicitly: that a mutation rejects an unauthorized caller, and that no secret is reachable from client code.",
         "Apply both the backend and frontend testing rules."
       ]
@@ -244,9 +250,12 @@
         "Permissions: what is requested, when, and what the app does when refused.",
         "Crash and error reporting, since you cannot read the user's console.",
         "Deep links and cold-start routing.",
-        "Release channel and update strategy - users run old versions for months."
+        "Release channel and update strategy - users run old versions for months.",
+        "Loading affordance house style: progress bar with percentage for determinate work, skeleton or spinner otherwise. Agree it once with the user and write it into CLAUDE.md rather than deciding per screen."
       ],
       "operability_rules": [
+        "Every asynchronous operation a user can see declares four states: loading, empty, error and success. Empty is not success with no rows, and success on a mutation is a confirmation, not a silent return to normal.",
+        "The loading affordance matches what you actually know: a progress bar with a percentage only when progress is determinate (upload, batch, known steps); a skeleton or spinner when it is not. A percentage you cannot compute is invented, and inventing it teaches the user your indicators mean nothing.",
         "Every feature that writes data states its offline behaviour, even if the decision is 'fail loudly'.",
         "Stored data has a migration path. You cannot ask users to reinstall.",
         "A denied permission is a supported path, not a crash.",
@@ -254,6 +263,7 @@
         "Errors are reported off-device or they are invisible to you."
       ],
       "testing_rules": [
+        "All four async states are covered by tests - loading, empty, error and success. They are presentation rules, and presentation rules are testable.",
         "The offline path has a test, even when the decision is to fail loudly.",
         "Reading data written by a previous app version has a test. Users skip versions and never reinstall.",
         "The denied-permission path has a test. It is a supported path, not an edge case.",

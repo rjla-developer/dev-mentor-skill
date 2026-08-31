@@ -226,9 +226,10 @@
     ],
     "rules": [
       "Every HttpClient call has a timeout and a stated retry policy. RxJS retry without a bound retries forever.",
+      "Loading affordance matches what you know: a progress bar with a percentage only for determinate work; a skeleton or spinner otherwise. Never a percentage you cannot compute.",
       "An interceptor that swallows an error makes every downstream failure silent - it must rethrow or report.",
       "Provide a custom ErrorHandler or unhandled errors are invisible outside the user's console.",
-      "Every async view declares loading, empty and error states.",
+      "Every asynchronous operation a user can see declares four states: loading, empty, error and success. Empty is not success with no rows, and success on a mutation is a confirmation, not a silent return to normal.",
       "No secret in the client bundle. Everything in an Angular build ships to the browser."
     ]
   },

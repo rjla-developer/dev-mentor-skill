@@ -20,6 +20,7 @@ stage is noise, and noise gets the whole mentor muted.
 - [Gate 7 - Rollback](#gate-7---rollback)
 - [Gate 8 - Performance budget](#gate-8---performance-budget)
 - [Gate 9 - Dependency hygiene](#gate-9---dependency-hygiene)
+- [Gate 10 - Async state completeness](#gate-10---async-state-completeness)
 - [When each gate is due](#when-each-gate-is-due)
 - [How to raise one](#how-to-raise-one)
 
@@ -179,6 +180,51 @@ not a line in a feature PR.
 
 **Due from:** `pre-release`.
 
+## Gate 10 - Async state completeness
+
+**Front-end and mobile only. Due from `prototype`, and it is not negotiable at any stage
+above `spike`** - a screen that goes blank while it waits is a bug the user experiences
+every single time, not an edge case.
+
+**The question:** for every asynchronous operation a user can see, what is on screen
+while it runs, when it returns nothing, when it fails, and when it succeeds?
+
+**An answer names four states, not one:**
+
+| State | What it must not be |
+|---|---|
+| **Loading** | A blank area. The user cannot tell a slow system from a broken one. |
+| **Empty** | The loading state left running, or a success layout with nothing in it. Empty is a real result and needs its own words. |
+| **Error** | "Something went wrong". Say what failed and what to do next. |
+| **Success** | For a read, the data. **For a mutation, a confirmation** - a form that silently returns to normal leaves the user unsure whether it saved. |
+
+Empty and success are the two people collapse into one, and that is how a filtered list
+with no matches renders as an unexplained blank panel.
+
+**The loading affordance - agree it, do not assume it:**
+
+- **Determinate progress** - an upload, a batch of N items, a job with known steps - shows
+  **a progress bar with a percentage**. You have the number; show it.
+- **Indeterminate** - a query, a mutation, anything where you do not know how far along it
+  is - shows a skeleton of the coming layout, or a spinner. **Never a percentage.** A
+  percentage you cannot compute is a number you invented, and inventing it teaches the user
+  that your progress indicators mean nothing.
+- Below roughly 300ms, show nothing. A spinner that flashes is worse than a still screen.
+- Past roughly 10 seconds, say something more than "loading" - what it is waiting on, and
+  ideally a way out.
+
+**Ask the user which they want** the first time an async feature comes up in a project,
+and write the answer into `CLAUDE.md`. It is a product decision with a house style, not a
+technical one, and it should be decided once rather than re-litigated per screen.
+
+**What to check:** every async view in the change has all four states, and each one is
+covered by a test. These are presentation rules, and presentation rules are testable -
+that the error shows, that the button disables while submitting, that the empty case says
+why it is empty.
+
+**Failure mode if skipped:** the most common user-visible defect in any front-end
+codebase, and the one that makes a product feel broken even when nothing is wrong.
+
 ## When each gate is due
 
 | Gate | spike | prototype | pre-release | production | maintenance |
@@ -192,6 +238,7 @@ not a line in a feature PR.
 | 7 Rollback | - | - | - | required | required |
 | 8 Performance budget | - | platform limits | platform limits | required | required |
 | 9 Dependencies | - | - | required | required | required |
+| 10 Async states | - | required | required | required | required |
 
 A dash means **waste**, not "optional". Demanding it there is a mentor being wrong.
 
