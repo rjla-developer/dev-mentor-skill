@@ -210,6 +210,47 @@ down; run A built it and tested it. **Which is better depends on the stage, and 
 told prototype.** The comparison to draw is not "C tested less" but "C took on less scope
 and said so".
 
+### Where run C is still behind run A: product surface
+
+The test comparison above looks only at test coverage. Comparing what the two programs
+actually *do* tells a different story, and it is less flattering.
+
+| | A | C |
+|---|---|---|
+| Alexa cards (visual companion) | 3 files use them | **none** |
+| Spoken corrections capped per turn | `errors.slice(0, 2)`, rest to the card | **no cap** |
+| `AMAZON.HelpIntent` | implemented | **absent** |
+| A "how am I doing" intent | `MyProgressIntent` | absent |
+| Durable persistence | built and tested | deferred, recorded |
+
+Two of these are defects, not restraint:
+
+**No correction cap.** A learner who made five mistakes in one turn gets all five read
+aloud before the conversation continues. For a language tutor that is not a rough edge -
+it is the product failing at its job. Run A capped spoken corrections at two and pushed
+the rest to the Alexa card. Run C has no cap and no card, so it has nowhere to push them.
+
+**No Help intent.** Help, Cancel and Stop are the standard built-in intents an Alexa skill
+is expected to handle. Run C has Cancel and Stop and no Help.
+
+The rest is arguably scope run A added beyond the prompt, and run C's own doctrine -
+surgical changes, no speculative generality - would defend leaving it out.
+
+### The meta-finding: the tool optimises for what it can check
+
+Run C spent its budget on eight failure-policy tests, six escaping tests, a 127-line
+`CLAUDE.md`, gates, deferrals and landmines. Run A spent its budget on cards, a correction
+cap, a progress intent and a session summary.
+
+**Every gate, rule and threshold in this project is checkable. Nothing in it asks whether
+the thing is any good to use.** Gate 5 covers whether the project runs from a clean clone;
+nothing covers whether the feature is usable by the person it was built for.
+
+That is a structural bias, not a bug in one run: a tool made of checkable rules will pull
+effort toward the checkable. Recorded here rather than fixed reflexively - adding a tenth
+gate for "is it good" would be a checklist item standing in for judgment, which is the
+failure this project keeps warning about.
+
 ### A finding against dev-mentor itself
 
 `src/domain/progress.ts` in run C carries this comment:
@@ -271,6 +312,8 @@ of those.
   rules, and only against run B. Run A remains broader where it took on more scope.
 - "Its reasoning is always evidence-backed." Run C produced a confident justification for
   integer arithmetic that two million test comparisons do not support.
+- "It produces a more complete product." Run C shipped no Alexa card, no cap on spoken
+  corrections and no Help intent. Run A had all three.
 
 ## Control caveats
 
