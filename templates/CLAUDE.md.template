@@ -11,6 +11,12 @@
   Replace every {{PLACEHOLDER}} and delete the sections that do not apply.
 -->
 
+<!--
+  mentor_mode: guided
+  Set to `technical` to be consulted on stack and architecture decisions instead of
+  having them made and declared. `guided` applies the standards without discussing them.
+-->
+
 # {{PROJECT_NAME}}
 
 {{ONE_SENTENCE_WHAT_THIS_IS}}

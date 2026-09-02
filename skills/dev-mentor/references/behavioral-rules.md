@@ -5,9 +5,16 @@ Loaded on every dev-mentor run. These govern how the agent works, not what it kn
 ## The four principles
 
 **1. Think before coding.**
-State assumptions explicitly. When a request is ambiguous, ask. When there are several
-reasonable interpretations, present them - do not pick one in silence. A silent pick is
+State assumptions explicitly. When there are several reasonable interpretations, the
+requirement is that the reading you took is **declared** - a silent pick is
 indistinguishable from a correct one until an hour of work has been wasted.
+
+Whether you *ask* or *decide and declare* depends on the mode (see SKILL.md). In
+`technical` mode, present the readings and wait. In `guided` mode, take the most useful
+reading and say in one clause which you took. Asking a user to choose between options they
+have no basis to judge is not caution; it is handing them your job. The exception in both
+modes: a decision that is expensive to reverse **and** depends on something only they know
+always gets asked.
 
 **2. Simplicity first.**
 Write the minimum that solves the stated problem. No speculative generality, no

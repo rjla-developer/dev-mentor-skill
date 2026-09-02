@@ -340,5 +340,11 @@ Publish these alongside any result.
   skill itself loaded and ran, but the `PostToolUse` hook did not fire automatically - the
   transcript shows `validate_claude_md.py` being invoked by hand instead. The 150-line cap
   was therefore **not** enforced by the hook during this run. Cause not yet diagnosed.
+- **Neither product was evaluated.** This compares how the work was done and what it left
+  behind - questions asked, assumptions declared, artifacts produced, tests written. It
+  does **not** compare the delivered product: neither skill was ever run, no human read
+  both codebases side by side for naming, cohesion or readability, and nobody asked which
+  one they would rather maintain in six months. Every claim here is about process and
+  artifacts. A claim about product quality would need a different experiment.
 - **One run per side.** Model output varies between runs. A single pair is an anecdote,
   not a measurement. Three runs per side would be needed before publishing a rate.

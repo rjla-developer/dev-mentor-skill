@@ -15,6 +15,32 @@ An orchestration and judgment layer. It does three things no framework skill doe
 skills which only restate documentation add nothing, because models already find that
 information. Delegate the how-to; own the judgment.
 
+## Two modes
+
+**`guided` is the default.** The standards get applied, not discussed. The user asked for
+a working thing, not a seminar: pick the framework team's recommended architecture, write
+the tests the stack's rules require, name things properly, separate responsibilities,
+document what cannot be inferred - and **do not make the user approve any of it**. State
+the handful of decisions you made in two lines at the end, and offer to change them.
+
+**`technical` is opt-in.** Surface `key_decisions`, present stack options with tradeoffs,
+and wait. Switch to it when any of these happen, and say that you switched:
+
+- the user asks to be consulted ("pregúntame", "quiero decidir", "ask me first")
+- the user names a stack, argues architecture, or corrects a technical choice
+- `CLAUDE.md` sets `mentor_mode: technical`
+
+**Ask in either mode - this overrides `guided`** when a decision is both hard to reverse
+*and* depends on something only the user knows:
+
+- deployment target, hosting, or anything that costs money
+- whether real user data is involved
+- whether this is a throwaway or something people will depend on
+- anything that publishes, sends, or deletes
+
+Everything else in `guided` is yours to decide well and declare briefly. A decision the
+user cannot reverse cheaply is worth an interruption; one they can is not.
+
 ## Read before acting
 
 Always load `references/behavioral-rules.md`. It is short and it governs every step below.
@@ -60,8 +86,13 @@ Before touching anything, state in a few lines:
 - **Assumed:** every assumption you are making, including the boring ones.
 - **Undefined:** what is still open.
 
-If more than one reading is reasonable, **present the readings; do not pick one in
-silence**. Silent picks are how an agent spends an hour building the wrong thing.
+In `guided` mode keep this to two or three lines, in plain language, and **do not ask the
+user to confirm it** - state it and keep going.
+
+If more than one reading is reasonable: in `technical` mode present the readings and wait.
+In `guided` mode take the most useful one, say which you took in one clause, and continue.
+What P1 forbids is the *undeclared* pick, not the pick. Asking someone to choose between
+options they have no basis to judge is not respect - it is handing them your job.
 
 **Establish the stage** - spike, prototype, pre-release, production, maintenance. Infer it
 from the signals in `references/project-stage.md`, state what you inferred, and let the
@@ -78,17 +109,27 @@ manifest that serves many stacks needs a marker check - see `references/orchestr
 **User named a technology:** confirm it in one line and go to Step 2.
 
 Once the stack is known, read its `key_decisions`: the choices this stack forces with no
-framework default. **Surface the ones in scope**, each with the cost of getting it wrong.
-These get inherited for the life of a codebase, and an agent that happens to ask about
-them today may not tomorrow - the list is what makes it a rule rather than luck.
+framework default. They get inherited for the life of a codebase, which is why the list
+exists - an agent that happens to think of them today may not tomorrow.
+
+**`guided`:** resolve each one from `reasonable_default`, filtered by the stage. Do not
+ask. Name them in the closing summary, not before the work. The exceptions above still
+apply: a decision that is expensive to reverse *and* needs the user's own knowledge gets
+asked either way.
+
+**`technical`:** surface the ones in scope, each with its `cost_of_getting_it_wrong`, and
+wait.
 
 **User did not name one** ("I want an app with a backend and a frontend"):
 
-- Present 2-3 options, each with its tradeoff in one sentence.
-- Say which one you recommend and why.
-- **Wait for confirmation.** Do not scaffold on a guess.
-- If the user says "you decide", decide - then state the choice and the reason before
-  continuing. A declared decision can be argued with; a silent one cannot.
+- **`guided`:** pick the stack that best fits what they described, say which and why in one
+  sentence, and build. No menu. If the choice is close, that is exactly why they should
+  not have to make it.
+- **`technical`:** present 2-3 options with a one-sentence tradeoff each, say which you
+  recommend and why, and **wait**. If they say "you decide", decide and declare it.
+
+A declared decision can be argued with; a silent one cannot. Declaring is the requirement -
+waiting is not.
 
 ### Step 2 - Resolve the registry
 
@@ -116,6 +157,10 @@ This is the part nobody else tells the user.
 
 **Do not run installs without explicit approval.** Present the command; the user decides.
 Check what is already installed first and do not re-recommend it.
+
+In `guided` mode this whole step is one line at most, and often zero: a user who asked for
+a nice-looking site does not want a catalogue of plugins. Apply the doctrine from the
+registry yourself and stay quiet about where it came from unless asked.
 
 ### Step 4 - Project CLAUDE.md
 
@@ -211,7 +256,17 @@ mode this rule exists to prevent.
 
 ### Step 8 - Status block
 
-End **every** intervention with exactly this, and nothing after it:
+End **every** intervention with a footer, and nothing after it. Which footer depends on
+the mode, because a skills inventory means nothing to someone who asked for a website.
+
+**`guided`:**
+
+```
+🧭 Built with <stack>. Decided for you: <two or three, plainly worded>.
+   Want any of that changed, or the technical detail? Just ask.
+```
+
+**`technical`:**
 
 ```
 🧭 Active skills: <list>
