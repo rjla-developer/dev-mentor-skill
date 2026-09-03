@@ -164,7 +164,10 @@ registry yourself and stay quiet about where it came from unless asked.
 
 ### Step 4 - Project CLAUDE.md
 
-Generate or update `CLAUDE.md` from `../../templates/CLAUDE.md.template`.
+Generate or update `CLAUDE.md` from `../../templates/CLAUDE.md.template`, which is the
+**core only**. Optional blocks live in `../../templates/CLAUDE.sections.md` and are added
+only when their stated condition is met - never as scaffolding to fill in later. An
+unfilled section spends lines against the cap and teaches nobody anything.
 
 - **Hard cap: 150 lines.** A hook enforces it. A `CLAUDE.md` past that size stops being
   read carefully, so an over-long one silently loses the rules you cared about most.

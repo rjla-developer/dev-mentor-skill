@@ -1,31 +1,25 @@
 <!--
   Root CLAUDE.md. Hard cap: 150 lines, enforced by hooks/validate_claude_md.py.
 
-  Include only what an agent or a new contributor cannot infer by reading the code.
-  The test for every line: would removing it make someone pick the wrong file, command
-  or limit? If not, delete it.
+  This file is the CORE only - what every project needs. Optional sections live in
+  templates/CLAUDE.sections.md and are added ONLY when they apply to this project.
+  A template that arrives full invites filling gaps with filler, which is the exact
+  failure the cap exists to prevent.
 
-  Do not include: tutorials, changelogs, generic language rules, task notes that rot.
-  Personal preferences go in CLAUDE.local.md (exempt from the cap, gitignored).
-
-  Replace every {{PLACEHOLDER}} and delete the sections that do not apply.
--->
-
-<!--
   mentor_mode: guided
   Set to `technical` to be consulted on stack and architecture decisions instead of
-  having them made and declared. `guided` applies the standards without discussing them.
+  having them made and declared.
+
+  The test for every line: would removing it make someone pick the wrong file, command,
+  or limit? If not, delete it. Never include tutorials, changelogs, generic language
+  rules, or task notes that will rot.
 -->
 
 # {{PROJECT_NAME}}
 
 {{ONE_SENTENCE_WHAT_THIS_IS}}
 
-## Stage
-
-{{spike | prototype | pre-release | production | maintenance}} — {{WHO_DEPENDS_ON_IT}}
-
-<!-- This line calibrates every recommendation. Update it when the stage changes. -->
+Stage: **{{STAGE}}** — {{WHAT_THAT_MEANS_HERE}}
 
 ## Stack
 
@@ -41,105 +35,41 @@ Run these exactly; do not substitute equivalents.
 | Install | `{{INSTALL_COMMAND}}` |
 | Run locally | `{{RUN_COMMAND}}` |
 | Full test suite | `{{TEST_COMMAND}}` |
-| Lint | `{{LINT_COMMAND}}` |
-| Typecheck | `{{TYPECHECK_COMMAND}}` |
-| Build | `{{BUILD_COMMAND}}` |
+| Lint / typecheck | `{{LINT_COMMAND}}` |
 
 ## Layout
 
 {{WHERE_THINGS_LIVE_IN_3_TO_6_LINES}}
 
-## Architectural decisions
-
-Decisions that are already made. Changing one is a discussion, not a refactor.
-
-- {{DECISION_1}} — because {{REASON_1}}
-- {{DECISION_2}} — because {{REASON_2}}
-
-## Conventions
-
-- Branches: {{BRANCH_CONVENTION}}
-- Commits: {{COMMIT_CONVENTION}}
-- {{OTHER_CONVENTION}}
+Structure: {{FOLDER_STRATEGY}} — {{WHY_THIS_STRATEGY}}
 
 ## Architectural rules
 
-<!-- From the stack's `architecture.rules`. Each line checkable by reading the code:
-     "domain imports no SDK" is a rule, "keep it clean" is not. Say who recommends it. -->
+<!-- From the stack's `architecture.rules`. Every line must be checkable by reading the
+     code: "domain imports no SDK" is a rule, "keep it clean" is not. -->
 
 - {{ARCHITECTURE_RULE_1}}
 - {{ARCHITECTURE_RULE_2}}
-- {{ARCHITECTURE_RULE_3}}
 
-Structure: {{FOLDER_STRATEGY}} — {{WHY_THIS_STRATEGY}}
+## Quality gate
 
-## Known landmines
-
-<!-- Traps already paid for. Append the moment one is found, during the task. The only
-     section that cannot be re-derived from the code - the code looks correct until it fires. -->
-
-- {{LANDMINE}} — {{WHAT_IT_BREAKS}} — {{WHAT_TO_DO_INSTEAD}}
+- **Behavior changed** — a business rule, a contract, state — **then a test is written or
+  updated.** Moving a file or changing a colour does not need a new test.
+- **Run `{{TEST_COMMAND}}` at the end of every task and report the real result.** Never
+  claim done without running it.
+- No coverage targets. A test earns its place by being behavioral, specific,
+  deterministic and non-duplicative.
+- {{STACK_TEST_RULE}}
 
 ## Behavioral rules
 
-- **Think before coding.** State assumptions; when several readings are reasonable,
-  present them rather than picking one silently.
+- **Think before coding.** State assumptions; declare the reading you took.
 - **Simplicity first.** No speculative generality, no abstraction with one implementation.
 - **Surgical changes.** Change what the task requires; nothing adjacent.
 - **Goal-directed execution.** Verifiable success criteria before starting.
 
-On trivial work, shorten the flow and say that you did.
-
-## Quality gate
-
-- **Behavior changed** — logic, business rules, state, an API contract — **then a test is
-  written or updated.** Moving a file or changing a colour does not need a new test.
-- **Run `{{TEST_COMMAND}}` at the end of every task and report the real result.** Never
-  claim done without running it. If it fails, fix it or say so.
-- No coverage percentage targets. A test earns its place by being behavioral, specific,
-  deterministic and non-duplicative.
-
-## Async states
-
-<!-- Delete this section on a backend-only project. -->
-
-Empty is not success with no rows; success on a mutation is a confirmation, not silence.
-
-| State | This project shows |
-|---|---|
-| Loading | {{PROGRESS_BAR_WITH_PERCENT_OR_SKELETON}} |
-| Empty | {{WHAT_THE_EMPTY_CASE_SAYS}} |
-| Error | {{WHAT_FAILED_AND_WHAT_TO_DO}} |
-| Success | {{DATA_OR_CONFIRMATION}} |
-
-A percentage only when progress is measurable. All four states covered by tests.
-
-## Testing rules
-
-<!-- From the stack's `testing.rules` and `what_not_to_test`. Stack-specific only. -->
-
-- {{TEST_RULE_1}}
-- {{TEST_RULE_2}}
-- Not worth testing here: {{WHAT_NOT_TO_TEST}}
-
-## Deferred
-
-<!-- What was skipped, and the stage that makes it due. A written deferral is a decision;
-     an undocumented one is indistinguishable from an oversight. -->
-
-- {{WHAT}} — due at {{STAGE}}. {{WHAT_IS_MISSING_TODAY}}
-
 ## Never
 
 - {{NEVER_1}}
-- {{NEVER_2}}
-- Delete a file because it looks unused. Removal happens through a written plan that
-  lists the evidence of non-use, and only after the suite passes. (`/mentor-clean` does
-  this if it is installed; the requirement stands either way.)
-
-## Sub-projects
-
-<!-- Delete this section if the repository is not split by domain. -->
-
-@{{PATH_TO_SUB_CLAUDE_MD_1}}
-@{{PATH_TO_SUB_CLAUDE_MD_2}}
+- Delete a file because it looks unused. Removal happens through a written plan listing
+  the evidence of non-use, and only after the suite passes.

@@ -82,27 +82,27 @@
   "testing": {
     "layers": [
       {
-        "name": "unit",
-        "belongs_here": "a provider's business rules with collaborators supplied directly",
-        "does_not_belong_here": "anything needing the DI container to prove it",
-        "cost": "cheap",
-        "signal_you_picked_wrong": "the test builds a TestingModule to call one pure method"
+        "name": "unit (isolated)",
+        "belongs_here": "a provider instantiated manually with its dependencies passed in - pure business rules",
+        "does_not_belong_here": "anything needing the DI container",
+        "cost": "cheapest; the Nest docs call this isolated testing",
+        "signal_you_picked_wrong": "the test builds a TestingModule to reach one pure function"
       },
       {
-        "name": "integration",
-        "belongs_here": "real module wiring via Test.createTestingModule, overriding only what leaves the process",
-        "does_not_belong_here": "branch enumeration",
-        "cost": "moderate",
-        "signal_you_picked_wrong": "every provider is overridden - the test now asserts the mocks"
+        "name": "unit (TestingModule)",
+        "belongs_here": "a provider resolved through Test.createTestingModule with dependencies overridden",
+        "does_not_belong_here": "HTTP concerns",
+        "cost": "moderate; bootstraps a module the way main.ts does",
+        "signal_you_picked_wrong": "everything is overridden, so the test asserts the overrides"
       },
       {
         "name": "e2e",
-        "belongs_here": "the HTTP surface end to end against a running app",
-        "does_not_belong_here": "coverage",
-        "cost": "slow"
+        "belongs_here": "the interaction of classes and modules at an aggregate level, close to what an end user does - the Nest docs' own framing",
+        "does_not_belong_here": "exhaustive branch coverage",
+        "cost": "slow; boots the application"
       }
     ],
-    "proportions": "NestJS team: pragmatic - real module wiring where valuable, mocking where appropriate. They provide useMocker for classes with many dependencies, noting it exists because mocking them all takes a long time - itself a signal the class has too many.",
+    "proportions": "No proportions stated. The Nest docs do state the trigger for e2e: as the application grows it becomes hard to manually test the behaviour of every endpoint.",
     "commands": {
       "full_suite": "npm test",
       "e2e": "npm run test:e2e",
@@ -111,19 +111,22 @@
       "lint": "npm run lint"
     },
     "rules": [
-      "At least one test per feature exercises the real module wiring. Nest makes mocking everything trivial, and a fully mocked suite passes while DI is broken.",
-      "Override at the boundary, not at every provider. overrideProvider is for what leaves the process.",
-      "Globally registered guards, interceptors and pipes are not exercised by a narrow unit test - cover them where they actually run.",
-      "resolve() returns an instance from its own DI sub-tree, so two calls give different instances. Comparing references there will mislead you."
+      "At least one test per feature exercises the real module wiring. A suite where every dependency is overridden passes while the DI graph is broken.",
+      "Override with overrideProvider using useValue for a fake, useClass for a substitute implementation.",
+      "Globally registered guards, interceptors and filters must be registered with useExisting to be overridable in a test.",
+      "Request-scoped providers are garbage-collected after the request; use ContextIdFactory to reach them in a test rather than asserting on a stale instance.",
+      "Nest is agnostic about the test runner. Read package.json instead of assuming Jest."
     ],
     "traps": [
-      "A fully mocked TestingModule stays green while the real provider graph is broken - the most common false-confidence failure in this stack.",
-      "Request-scoped providers behave differently under test; a singleton assumption passes locally and leaks state in production.",
-      "Global guards do not run in a narrow TestingModule, so an endpoint tested in isolation appears authorized when it is not.",
-      "Validation pipes are global by default: a DTO test that skips the pipe proves nothing about what the endpoint accepts."
+      "The DI container makes it trivial to mock everything, which produces suites that pass while the wiring is broken - the single most common failure in this stack.",
+      "A globally registered enhancer registered with useClass cannot be overridden, so the test silently runs against the real one.",
+      "Request-scoped providers: the instance the test holds is not the instance the request used.",
+      "An e2e test sharing a database with another e2e test passes alone and fails in the suite, or worse, the reverse.",
+      "Validation pipes applied globally in main.ts but not in the testing module mean e2e tests accept payloads production rejects."
     ],
     "what_not_to_test": [
-      "That Nest injects dependencies, or that a decorator registers a route.",
+      "That a provider is defined - a test asserting only toBeDefined() proves the container started.",
+      "Framework behaviour: that a guard runs, that a pipe validates a decorated DTO.",
       "DTO classes with no logic beyond decorators.",
       "Generated migration files."
     ],
@@ -138,107 +141,120 @@
   "architecture": {
     "recommended_by": "framework-team",
     "source_url": "https://docs.nestjs.com/modules",
-    "pattern": "modular architecture with dependency injection",
+    "pattern": "feature modules over a DI container",
     "folder_strategy": "feature-first",
     "layers": [
       {
         "name": "Controller",
-        "holds": "transport: parsing, DTO validation, shaping the response",
-        "must_not": "hold business rules - a controller method past 30 lines has absorbed the service"
+        "holds": "HTTP transport: routing, request shape, response shape",
+        "must_not": "business rules - a controller method past about 30 lines has absorbed the service"
       },
       {
-        "name": "Service / provider",
-        "holds": "business rules",
-        "must_not": "know about HTTP - no Request, no Response, no status codes"
+        "name": "Service / Provider",
+        "holds": "the business rules, injectable and testable without HTTP",
+        "must_not": "knowledge of the request, the response or any Nest decorator beyond @Injectable"
       },
       {
         "name": "Repository / data access",
         "holds": "persistence and queries",
-        "must_not": "contain business rules"
+        "must_not": "business rules; it returns data, it does not decide policy"
       },
       {
         "name": "Module",
-        "holds": "the wiring: what a feature provides and what it exports",
-        "must_not": "export everything - every export is a contract with the rest of the app"
+        "holds": "the wiring: what a feature provides, imports and exports",
+        "must_not": "logic of its own"
+      },
+      {
+        "name": "Guards, interceptors, pipes, filters",
+        "holds": "cross-cutting concerns applied by decorator or globally",
+        "must_not": "feature-specific branching hidden from the feature that depends on it"
       }
     ],
     "variants": [
       {
-        "name": "Feature modules only",
-        "use_when": "most applications",
-        "cost": "boundaries are conventions; an over-eager exports list dissolves them"
+        "name": "Feature modules in one app",
+        "use_when": "the default for a single deployable",
+        "cost": "module boundaries are conventions; nothing stops a cross-feature import but review"
       },
       {
-        "name": "Feature modules plus a domain layer",
-        "use_when": "the same rules serve HTTP and a queue consumer",
-        "cost": "more indirection; premature here is the over-abstraction signal"
+        "name": "Monorepo with libraries",
+        "use_when": ">=2 apps share the same providers, or teams own separate areas",
+        "cost": "build and release complexity you now maintain"
+      },
+      {
+        "name": "Hexagonal / ports and adapters",
+        "use_when": "the domain must outlive the framework, or persistence will be swapped",
+        "cost": "an interface and an adapter for every boundary - the over-abstraction signal unless a second adapter is real"
       }
     ],
     "rules": [
-      "A controller does transport only. Business rules live in a provider.",
-      "A service never imports Request or Response. If it needs the caller's identity, pass it as an argument.",
-      "A module exports only what another module actually imports.",
-      "Cross-feature access goes through an exported provider, never into another feature's internals.",
-      "Global providers (APP_GUARD and friends) are invisible at the call site - list them in CLAUDE.md or nobody will know they run."
+      "A controller translates HTTP and delegates. Business rules live in a provider that can be tested without an HTTP request.",
+      "A feature module exports only what other modules legitimately need. Everything else stays private to the module.",
+      "Every new route states its authorization decision explicitly, including 'public on purpose'. An unguarded route and an intentionally public one look identical in the code.",
+      "Register globally-applied enhancers with useExisting rather than useClass, or they cannot be overridden in tests.",
+      "Never inject a request-scoped provider into a singleton: it silently promotes the whole chain to request scope."
     ],
-    "component_library": "Not applicable - backend stack.",
-    "notes": "Nest is opinionated about modules and DI and unopinionated about where business rules live, which is exactly where projects drift."
+    "component_library": "Not applicable - promote shared providers into a module that both features import, at >=2 consumers.",
+    "notes": "Nest is unopinionated about folder layout but strongly opinionated about the DI graph. The module boundary, not the folder, is the real architecture."
   },
   "key_decisions": [
     {
-      "decision": "Where business rules live",
-      "why_it_is_forced": "Nest defines controllers, providers and modules but takes no position on what belongs in a provider versus a dedicated domain object.",
-      "options": [
-        "rules in services",
-        "separate domain layer",
-        "rules in ORM entities"
-      ],
-      "reasonable_default": "Rules in services until the same rules serve a second entry point.",
-      "cost_of_getting_it_wrong": "Rules that end up in controllers cannot be reused by a queue consumer or a cron job without copying them."
-    },
-    {
-      "decision": "Provider scope",
-      "why_it_is_forced": "Singleton, request-scoped and transient behave very differently and the choice is invisible at the call site.",
-      "options": [
-        "singleton",
-        "request-scoped",
-        "transient"
-      ],
-      "reasonable_default": "Singleton. Reach for request scope only when per-request state genuinely cannot be an argument.",
-      "cost_of_getting_it_wrong": "A singleton holding request state leaks one user's data into another's response."
-    },
-    {
-      "decision": "ORM and transaction boundary",
-      "why_it_is_forced": "Nest bundles no ORM, and where a transaction begins and ends is not decided for you.",
+      "decision": "ORM and data access",
+      "why_it_is_forced": "Nest bundles no persistence layer and integrates with several equally supported options.",
       "options": [
         "TypeORM",
         "Prisma",
         "Drizzle",
+        "MikroORM",
         "raw SQL"
       ],
-      "reasonable_default": "Decide the transaction boundary at the same time as the ORM, not later.",
-      "cost_of_getting_it_wrong": "A transaction boundary discovered late means partial writes already reached production."
+      "reasonable_default": "Prisma or Drizzle for a new project; whatever the team already runs otherwise.",
+      "cost_of_getting_it_wrong": "It reaches every repository and every test fixture. Swapping it later is a rewrite of the data layer."
     },
     {
-      "decision": "Authorization strategy",
-      "why_it_is_forced": "Guards can be global, per-controller or per-route, and mixing them puts the answer in two places.",
+      "decision": "Authentication and authorization strategy",
+      "why_it_is_forced": "Guards are a mechanism, not a policy. Nest gives you the hook and no decision.",
       "options": [
-        "global guard with opt-out",
-        "per-route guards",
-        "both"
+        "JWT with guards",
+        "session cookies",
+        "external identity provider",
+        "per-route policies"
       ],
-      "reasonable_default": "One strategy, stated in CLAUDE.md.",
-      "cost_of_getting_it_wrong": "An endpoint that looks guarded because a sibling is guarded is how public endpoints ship."
+      "reasonable_default": "Decide the mechanism once, and make the per-route decision explicit for every route.",
+      "cost_of_getting_it_wrong": "Authorization added feature by feature ends up enforced in some routes and forgotten in others, and nothing surfaces the gap."
+    },
+    {
+      "decision": "Validation boundary",
+      "why_it_is_forced": "A global ValidationPipe and per-route pipes both work, and they behave differently in tests.",
+      "options": [
+        "global ValidationPipe",
+        "per-controller pipes",
+        "schema validation in the service"
+      ],
+      "reasonable_default": "A global pipe, replicated in the testing module so e2e tests reject what production rejects.",
+      "cost_of_getting_it_wrong": "A mismatch means tests accept payloads the deployed app refuses, so the bug ships."
     },
     {
       "decision": "Configuration and secrets",
-      "why_it_is_forced": "ConfigModule is optional and process.env works, so config access spreads unless a decision is made.",
+      "why_it_is_forced": "Nest ships ConfigModule but takes no position on where values come from or how they are validated.",
       "options": [
-        "ConfigModule with a validated schema",
-        "process.env directly"
+        "env files",
+        "secret manager",
+        "validated schema at boot"
       ],
-      "reasonable_default": "ConfigModule with schema validation - it fails at boot rather than at the first request.",
-      "cost_of_getting_it_wrong": "A missing variable found at runtime is an outage; found at boot it is a failed deploy."
+      "reasonable_default": "Validate configuration at startup and fail loudly. A missing variable should stop the boot, not surface as a null at 3am.",
+      "cost_of_getting_it_wrong": "Config read lazily fails in production on the one path nobody exercised."
+    },
+    {
+      "decision": "Deployment shape",
+      "why_it_is_forced": "A monolith, a monorepo of apps and microservices are all first-class in Nest, and the transport choice is structural.",
+      "options": [
+        "single app",
+        "monorepo",
+        "microservices with a transport"
+      ],
+      "reasonable_default": "Single app until an actual scaling or ownership boundary appears.",
+      "cost_of_getting_it_wrong": "Splitting into services early buys distributed-systems problems before you have the problem they solve."
     }
   ],
   "operability": {

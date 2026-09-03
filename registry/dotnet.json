@@ -104,26 +104,31 @@
     "layers": [
       {
         "name": "unit",
-        "belongs_here": "business rules in isolation, with fakes for infrastructure",
-        "does_not_belong_here": "anything needing the request pipeline",
-        "cost": "fastest; Microsoft: if a behavior can be tested either way, choose the unit test",
-        "signal_you_picked_wrong": "the test spins up WebApplicationFactory to check one calculation"
+        "belongs_here": "individual components or methods - and, per Microsoft's own guidance, only code within the developer's control: unit tests do not test infrastructure concerns such as databases, file systems or network resources",
+        "does_not_belong_here": "anything touching infrastructure",
+        "cost": "cheapest and fastest",
+        "signal_you_picked_wrong": "the test needs a database or a WebApplicationFactory to reach one assertion"
       },
       {
         "name": "integration",
-        "belongs_here": "the real pipeline through WebApplicationFactory: routing, model binding, middleware, DI and the database",
-        "does_not_belong_here": "every permutation of data access",
-        "cost": "slower, more setup - and where middleware and DI defects actually surface",
-        "signal_you_picked_wrong": "the suite has an integration test per data permutation instead of a focused set"
+        "belongs_here": "two or more components working together - and, again per Microsoft, these often do include infrastructure concerns",
+        "does_not_belong_here": "exhaustive branch coverage",
+        "cost": "slower; needs real or containerised dependencies"
       },
       {
-        "name": "e2e",
-        "belongs_here": "a browser driving the deployed app; Microsoft recommends Playwright for .NET for SPAs",
-        "does_not_belong_here": "coverage",
-        "cost": "slowest"
+        "name": "functional (WebApplicationFactory)",
+        "belongs_here": "the real pipeline: middleware, model binding, filters, authorization and DI wiring",
+        "does_not_belong_here": "business branch enumeration",
+        "cost": "moderate, and it catches the mistakes unit tests structurally cannot see"
+      },
+      {
+        "name": "load",
+        "belongs_here": "whether the system handles a specified load - Microsoft lists this as a first-class test type",
+        "does_not_belong_here": "correctness",
+        "cost": "needs an environment resembling production to mean anything"
       }
     ],
-    "proportions": "Microsoft: 'If a behavior can be tested using either a unit test or an integration test, choose the unit test.' And: do not write integration tests for every permutation of data and file access - a focused set of read, write, update and delete tests is usually enough.",
+    "proportions": "No proportions stated by Microsoft. Their definition sets the boundary instead: unit tests do not touch infrastructure, integration tests often do. That line decides where a test belongs more reliably than any ratio.",
     "commands": {
       "full_suite": "dotnet test",
       "coverage": "dotnet test --collect:\"XPlat Code Coverage\"",
@@ -131,24 +136,23 @@
       "format": "dotnet format --verify-no-changes"
     },
     "rules": [
-      "Keep unit and integration tests in separate projects. Microsoft recommends this so infrastructure components are not accidentally pulled into unit tests, and so you can run one set without the other.",
-      "Prefer the unit test when both would work. Reach for WebApplicationFactory when the pipeline itself is under test.",
-      "For EF Core in-memory testing, the SQLite provider is the recommended choice - the EF in-memory provider is for limited and basic testing only and does not enforce relational constraints.",
-      "A focused set of CRUD integration tests covers data access. Do not enumerate permutations there.",
-      "POST endpoints protected by antiforgery need the token and cookie retrieved from a prior GET - a test that skips this is testing the rejection, not the endpoint."
+      "A unit test that reaches a database, the file system or the network is an integration test that has been mislabelled - Microsoft's own definition draws that line.",
+      "Use WebApplicationFactory for integration tests over the real pipeline: it catches the middleware, authorization and DI mistakes unit tests cannot.",
+      "dotnet test runs every test project in the solution. Run it, not a filtered subset, before reporting a task complete.",
+      "Pick one test framework per solution. MSTest, NUnit, TUnit and xUnit are all supported; mixing them doubles the conventions a contributor must know."
     ],
     "traps": [
-      "The EF Core in-memory provider accepts writes a real database would reject, so the suite is green on data that cannot exist.",
-      "WebApplicationFactory resolves the real DI graph, so a test can pass because of a registration nobody intended to include.",
-      "Middleware ordering bugs are invisible to unit tests by construction - only the pipeline shows them.",
-      "Async void and un-awaited tasks in tests complete after the assertion, so the test passes before the work finished.",
-      "A shared WebApplicationFactory fixture carries database state between tests unless it is reset explicitly."
+      "Async tests returning void instead of Task: exceptions are swallowed and the test passes regardless of what happened.",
+      "An in-memory EF Core provider accepts queries and constraint violations that a real database rejects, so the suite is green and the deployment is not.",
+      "A shared WebApplicationFactory carries state between tests, so a test passes alone and fails in the suite - or the reverse.",
+      "Static state and singletons persist across tests in the same assembly; test order then changes the result.",
+      "Mocking DbContext produces a test that asserts the mock's behaviour rather than any query the database would run."
     ],
     "what_not_to_test": [
-      "That the DI container resolves a registration, or that routing maps an attribute.",
-      "Auto-properties and records with no behaviour.",
-      "EF Core migration classes as units - run them.",
-      "Generated code and source generators' output."
+      "Auto-properties, constructors and pass-through methods with no branching.",
+      "Framework behaviour: that model binding bound, that the DI container resolved.",
+      "EF Core migration classes themselves; assert on the resulting schema.",
+      "Generated code and scaffolded output."
     ],
     "notes": "WebApplicationFactory gives real integration tests over the actual pipeline, which catches the middleware and DI mistakes that unit tests structurally cannot see."
   },
@@ -159,112 +163,118 @@
     "extract_project": ">=2 projects reference the same internal folder by relative path"
   },
   "architecture": {
-    "recommended_by": "community",
-    "source_url": "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/",
-    "pattern": "layered, with projects as the enforced boundary",
+    "recommended_by": "framework-team",
+    "source_url": "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures",
+    "pattern": "layered solution with projects as the boundary",
     "folder_strategy": "feature-first",
     "layers": [
       {
-        "name": "Endpoint / Controller",
-        "holds": "transport: routing, model binding, validation, response shaping",
-        "must_not": "hold business rules - an action past 30 lines has absorbed the service"
+        "name": "Web / API project",
+        "holds": "endpoints, middleware, model binding, the composition root where DI is configured",
+        "must_not": "business rules - an action method past ~30 lines has absorbed the service"
       },
       {
-        "name": "Application / service",
-        "holds": "business rules and use cases",
-        "must_not": "reference HttpContext"
-      },
-      {
-        "name": "Infrastructure",
-        "holds": "EF Core, external clients, file and queue access",
-        "must_not": "be referenced by the domain - the dependency points inward"
+        "name": "Application / service layer",
+        "holds": "business rules and use cases, callable without HttpContext",
+        "must_not": "knowledge of the transport or of EF Core specifics"
       },
       {
         "name": "Domain",
-        "holds": "entities and rules with no framework dependency",
-        "must_not": "reference EF Core or ASP.NET"
+        "holds": "entities and invariants",
+        "must_not": "persistence concerns",
+        "optional": true
+      },
+      {
+        "name": "Infrastructure",
+        "holds": "EF Core, external services, file and network access",
+        "must_not": "business policy - it implements interfaces the layers above define"
       }
     ],
     "variants": [
       {
-        "name": "Single project, folders by feature",
-        "use_when": "small services; boundaries are conventions",
-        "cost": "nothing stops a domain class from referencing EF Core"
+        "name": "Single project",
+        "use_when": "small API, one team, short-lived",
+        "cost": "nothing enforces the layer boundary but review; it erodes quietly"
       },
       {
-        "name": "Multiple projects per layer",
-        "use_when": "the boundary must be enforced by the compiler",
-        "cost": "more build and solution overhead; a project per layer with one class each is over-abstraction"
+        "name": "Layered projects in one solution",
+        "use_when": "the common shape: Web, Application, Infrastructure, and Domain if the rules justify it",
+        "cost": "project references must be maintained, and a wrong one is how Infrastructure ends up referenced by Domain"
+      },
+      {
+        "name": "Vertical slices",
+        "use_when": "features are independent and each owns its request, handler and data access end to end",
+        "cost": "cross-cutting concerns get duplicated per slice unless deliberately shared"
       }
     ],
     "rules": [
-      "Dependencies point inward. Domain references nothing; infrastructure references domain, never the reverse.",
-      "A service never touches HttpContext. If it needs the caller, pass it as an argument.",
-      "Entities are not API responses. Return DTOs so a column rename is not a breaking API change.",
-      "A project boundary is the only boundary the compiler enforces. Folders are a convention and will be crossed.",
-      "Anything resolved from the DI container rather than constructed directly is invisible to the reference graph - list conditional registrations in CLAUDE.md."
+      "Project references are the architecture. Web references Application, Application references Domain, Infrastructure implements interfaces defined above it - and Domain references nothing.",
+      "An action or endpoint translates HTTP and delegates. Business rules go where they can be tested without a WebApplicationFactory.",
+      "The composition root is the Web project. Nothing below it constructs its own dependencies.",
+      "Every new endpoint states its authorization decision explicitly, including [AllowAnonymous] on purpose.",
+      "Never let EF Core types leak past Infrastructure: an IQueryable returned upward makes the database schema part of every caller's contract."
     ],
-    "component_library": "Not applicable - backend stack.",
-    "needs_verification": true,
-    "notes": "Microsoft publishes reference architectures rather than a single mandate. These rules are the common denominator across them plus the mentor's judgment - present them as such, not as doctrine."
+    "component_library": "Not applicable. Promote shared code to its own project at >=2 consuming projects; below that, a folder is enough.",
+    "notes": "Microsoft publishes several reference architectures rather than one mandate. What is not negotiable in any of them is the direction of project references, which is why the rules focus there."
   },
   "key_decisions": [
     {
       "decision": "Minimal APIs or controllers",
-      "why_it_is_forced": "Both are first-class and mixing them means two conventions for routing, filters and validation.",
+      "why_it_is_forced": "Both are first-class in ASP.NET Core and they organise, test and version differently.",
       "options": [
         "minimal APIs",
         "controllers",
-        "both, split deliberately"
+        "both, split by area"
       ],
-      "reasonable_default": "One of them, written down.",
-      "cost_of_getting_it_wrong": "Two conventions means a cross-cutting concern gets implemented twice and forgotten once."
+      "reasonable_default": "Minimal APIs for small surfaces; controllers when filters, conventions and model binding attributes are doing real work.",
+      "cost_of_getting_it_wrong": "Mixing them without a rule means two places to enforce authorization and two conventions for every contributor."
     },
     {
-      "decision": "Project layout: one project or many",
-      "why_it_is_forced": "Only a project reference is enforced by the compiler; folders are not.",
+      "decision": "Test platform and framework",
+      "why_it_is_forced": "Microsoft documents two platforms - VSTest and Microsoft.Testing.Platform - and four frameworks. Nothing picks for you.",
       "options": [
-        "single project with feature folders",
-        "project per layer"
+        "xUnit",
+        "NUnit",
+        "MSTest",
+        "TUnit"
       ],
-      "reasonable_default": "Single project until a boundary is actually being violated.",
-      "cost_of_getting_it_wrong": "Splitting late means untangling references that already point the wrong way; splitting early means solution overhead for nothing."
+      "reasonable_default": "One per solution, chosen once. All four are supported; consistency is what matters.",
+      "cost_of_getting_it_wrong": "A solution with two frameworks needs two sets of conventions, two runners and two CI configurations."
     },
     {
-      "decision": "Data access and the unit of work",
-      "why_it_is_forced": "EF Core, Dapper and raw ADO.NET have very different transaction and tracking semantics.",
+      "decision": "Data access",
+      "why_it_is_forced": "EF Core, Dapper and ADO.NET are all supported and shape the code above them differently.",
       "options": [
-        "EF Core with change tracking",
-        "EF Core no-tracking for reads",
+        "EF Core",
         "Dapper",
-        "mixed"
+        "raw ADO.NET",
+        "EF Core plus Dapper for hot paths"
       ],
-      "reasonable_default": "EF Core, with reads explicitly no-tracking.",
-      "cost_of_getting_it_wrong": "Change tracking left on for read paths silently holds entities and turns a read endpoint into a memory problem under load."
+      "reasonable_default": "EF Core unless the queries are the product.",
+      "cost_of_getting_it_wrong": "EF Core's change tracking and lazy loading leak upward, so replacing it later is not a swap."
     },
     {
-      "decision": "Authentication and authorization model",
-      "why_it_is_forced": "ASP.NET Core supports policy, role and claim-based authorization and enforces none by default.",
+      "decision": "Project boundaries in the solution",
+      "why_it_is_forced": "A solution can be one project or ten, and project references are what actually enforce the architecture.",
       "options": [
-        "policy-based",
-        "role-based",
-        "resource-based",
-        "gateway-enforced"
+        "single project",
+        "layered projects",
+        "vertical slices"
       ],
-      "reasonable_default": "Policy-based, with a default authorization policy so an endpoint must opt out rather than opt in.",
-      "cost_of_getting_it_wrong": "Opt-in authorization means a forgotten attribute is a public endpoint that looks exactly like an intentional one."
+      "reasonable_default": "Single project until a boundary is real; then layered, with references pointing one way only.",
+      "cost_of_getting_it_wrong": "A reference added in the wrong direction is trivial to add and expensive to remove once code depends on it."
     },
     {
-      "decision": "Hosting target",
-      "why_it_is_forced": "Framework features available depend on where it runs.",
+      "decision": "Hosting and deployment target",
+      "why_it_is_forced": "Available features and startup behaviour differ between a long-lived host and a serverless one.",
       "options": [
         "Azure App Service",
         "container",
-        "self-hosted Kestrel",
-        "serverless"
+        "AWS Lambda",
+        "self-hosted Kestrel"
       ],
       "reasonable_default": "Decide before building.",
-      "cost_of_getting_it_wrong": "Discovering at deploy time that the target does not support something you built on means rewriting those paths."
+      "cost_of_getting_it_wrong": "Background services and in-process caches that work under a long-lived host silently do nothing under serverless."
     }
   ],
   "operability": {

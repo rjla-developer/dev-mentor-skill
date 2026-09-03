@@ -73,33 +73,32 @@
     "layers": [
       {
         "name": "unit",
-        "belongs_here": "business rules with collaborators passed directly - no Spring context at all",
-        "does_not_belong_here": "anything needing beans wired to prove it",
+        "belongs_here": "a service with its collaborators passed in - business rules, plain JUnit, no Spring context",
+        "does_not_belong_here": "anything needing the container",
         "cost": "cheapest and fastest",
-        "signal_you_picked_wrong": "the test is annotated @SpringBootTest to call one pure method"
+        "signal_you_picked_wrong": "the test is annotated @SpringBootTest to check one calculation"
       },
       {
         "name": "slice",
-        "belongs_here": "one layer with only the beans it needs: @WebMvcTest for controllers, @DataJpaTest for repositories, @JsonTest for serialization",
-        "does_not_belong_here": "business rules reachable without Spring",
-        "cost": "moderate; the context is small and cached",
-        "signal_you_picked_wrong": "the slice annotation was replaced with @SpringBootTest because something was missing - that is a design signal, not a test problem"
+        "belongs_here": "one layer with a minimal context: @WebMvcTest for controllers, @DataJpaTest for repositories",
+        "does_not_belong_here": "cross-layer behaviour",
+        "cost": "moderate; boots a fraction of the context",
+        "signal_you_picked_wrong": "you needed three @MockBean declarations to make the slice start"
       },
       {
-        "name": "integration",
-        "belongs_here": "the full context via @SpringBootTest, for wiring and cross-layer behaviour",
+        "name": "integration (@SpringBootTest)",
+        "belongs_here": "the wiring: configuration, transactions, real repositories, security filters",
         "does_not_belong_here": "branch enumeration",
-        "cost": "slow: the whole context boots",
-        "signal_you_picked_wrong": "every test in the suite is @SpringBootTest and the suite now takes minutes"
+        "cost": "expensive; boots the whole context"
       },
       {
         "name": "e2e",
-        "belongs_here": "the deployed surface",
+        "belongs_here": "flows against a running application, often with Testcontainers",
         "does_not_belong_here": "coverage",
-        "cost": "slowest"
+        "cost": "slowest, needs infrastructure"
       }
     ],
-    "proportions": "Spring Boot team: auto-configuration 'can sometimes be a little too much for tests', and it 'often helps to load only the parts of the configuration that are required to test a slice of your application'. Slices are also faster because Spring caches contexts and a smaller context is cached and reused.",
+    "proportions": "No proportions stated by the Spring team. The economics set the shape: @SpringBootTest is the path of least resistance and the most expensive, so the slice layer is the one this stack most often skips and most needs.",
     "commands": {
       "full_suite": "./mvnw test",
       "full_suite_gradle": "./gradlew test",
@@ -107,25 +106,23 @@
       "build": "./mvnw package -DskipTests"
     },
     "rules": [
-      "Reach for a slice before @SpringBootTest. The framework's own guidance is to load only the parts a test needs.",
-      "Tests that share the same configuration reuse a cached context. Every distinct configuration is another context boot, so gratuitous @MockBean variation silently multiplies the suite's runtime.",
-      "A rule that needs no Spring beans gets a plain JUnit test with no annotations at all.",
-      "Use the Maven or Gradle wrapper that exists in the repository. Never both.",
-      "Slice tests do not load your security configuration by default - an endpoint that looks authorized in @WebMvcTest may be open in production."
+      "Reach for plain JUnit first, then a slice annotation, and only then @SpringBootTest. Every step up multiplies the context boot cost across the whole suite.",
+      "Use the wrapper that exists in the repository - ./mvnw or ./gradlew - and never both.",
+      "Prefer Testcontainers over an in-memory database when the production database is not H2. A suite that only passes against H2 tests a database you do not run.",
+      "Assert on behaviour, not on the number of interactions with a mock."
     ],
     "traps": [
-      "@SpringBootTest everywhere: the suite gets slow enough that people stop running it, which is worse than having fewer tests.",
-      "Context caching hides the cost until a small annotation change forces a new context and the suite time doubles with no obvious cause.",
-      "@MockBean changes the context signature, so each unique combination is a separate cached context.",
-      "@Transactional on a test rolls back what the production code would have committed, so a test passes on code that would fail for real.",
-      "Component scan means a bean added anywhere joins every context - a test can pass because of a bean nobody intended to include.",
-      "Lazy loading works under an open session in a test and throws in production where the session is already closed."
+      "@SpringBootTest everywhere: the suite grows slow enough that people stop running it locally, which is worse than having fewer tests.",
+      "@Transactional on a test rolls back at the end, so a bug in commit-time behaviour - flushes, constraints, triggers - never surfaces.",
+      "An in-memory H2 database accepts SQL that the production database rejects, and vice versa.",
+      "@MockBean replaces the bean in a shared application context, so an unrelated test that reuses that context gets the mock.",
+      "Dirty context between tests: @DirtiesContext fixes correctness and destroys suite runtime; both failure modes are silent."
     ],
     "what_not_to_test": [
-      "That Spring injects a bean, or that @RestController maps a route.",
-      "Getters, setters and Lombok-generated code.",
-      "Flyway or Liquibase migration files as units - run them instead.",
-      "Configuration property binding, unless the binding itself has custom logic."
+      "That the application context loads - a contextLoads() test proves configuration parses, not that anything works.",
+      "Framework behaviour: that @Autowired injected, that Spring Data generated a query method.",
+      "Entity getters and setters.",
+      "Generated Flyway or Liquibase migration files; test the resulting schema instead."
     ],
     "notes": "Pick the Maven or Gradle command by which wrapper exists in the repository; never run both. Slice tests (@WebMvcTest, @DataJpaTest) are the layer this stack most often skips and most needs."
   },
@@ -136,108 +133,120 @@
     "split_package": "a package exceeds 15 classes"
   },
   "architecture": {
-    "recommended_by": "community",
+    "recommended_by": "framework-team",
     "source_url": "https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html",
-    "pattern": "layered with package-by-feature",
+    "pattern": "package-by-feature under a root application package",
     "folder_strategy": "feature-first",
     "layers": [
       {
+        "name": "root package",
+        "holds": "the @SpringBootApplication class, above every other class. It defines the base package for component scan, @EntityScan and @ConfigurationPropertiesScan.",
+        "must_not": "anything else - and never the default package, which makes Spring scan every class in every jar"
+      },
+      {
+        "name": "feature package",
+        "holds": "one domain concept and everything it needs: Customer, CustomerController, CustomerService, CustomerRepository - the layout the Spring Boot docs show",
+        "must_not": "classes another feature owns"
+      },
+      {
         "name": "Controller",
-        "holds": "transport: request mapping, validation, response shaping",
-        "must_not": "hold business rules - a controller method past 30 lines has absorbed the service"
+        "holds": "HTTP transport",
+        "must_not": "business rules - a controller method past ~30 lines has absorbed the service"
       },
       {
         "name": "Service",
-        "holds": "business rules and the transaction boundary",
-        "must_not": "know about HttpServletRequest or status codes"
+        "holds": "the business rules",
+        "must_not": "knowledge of HTTP or of the persistence framework"
       },
       {
         "name": "Repository",
-        "holds": "queries and persistence",
-        "must_not": "contain business rules"
-      },
-      {
-        "name": "Domain / entity",
-        "holds": "the model",
-        "must_not": "be the API contract - expose DTOs, not entities"
+        "holds": "persistence",
+        "must_not": "business policy"
       }
     ],
     "variants": [
       {
-        "name": "Package by feature",
-        "use_when": "the default; each feature owns its controller, service and repository",
-        "cost": "a rule shared by two features needs a deliberate home"
+        "name": "Package-by-feature (the Spring Boot docs' own example)",
+        "use_when": "the default; the reference documentation shows customer/ and order/ packages each holding their own controller, service and repository",
+        "cost": "a feature package can still grow into a monolith of its own without an enforced boundary"
       },
       {
-        "name": "Package by layer",
-        "use_when": "very small applications, or a team that already works this way",
-        "cost": "every feature change touches every package, and the boundaries mean nothing"
+        "name": "Package-by-layer (controller/, service/, repository/)",
+        "use_when": "a small application, or a team that already works this way",
+        "cost": "every feature change touches three packages, and nothing stops any service calling any repository"
+      },
+      {
+        "name": "Spring Modulith",
+        "use_when": "domain boundaries need enforcing rather than agreeing - the Spring Boot docs point here explicitly",
+        "cost": "a dependency and a set of rules the team has to learn and keep passing"
       }
     ],
     "rules": [
-      "Package by feature, not by layer. A change to one feature should touch one package.",
-      "Entities are never returned from a controller. A JPA entity as an API response leaks the schema and lazy-loads at serialization time.",
-      "The transaction boundary is on the service, not the repository and not the controller.",
-      "A service never imports the servlet API.",
-      "Component scan makes wiring invisible: a bean that is never imported by name is still live. Anything conditional (@Profile, @ConditionalOnProperty) belongs in CLAUDE.md."
+      "Never use the default package. Spring Boot's own documentation calls it out: with @ComponentScan or @SpringBootApplication, every class from every jar gets read.",
+      "The main application class sits in a root package above everything else. Its package is the scan base for components, entities and configuration properties.",
+      "Package by feature, not by layer. The reference documentation's example is customer/ and order/, each holding its own controller, service and repository.",
+      "A controller translates HTTP and delegates. Business rules go in a service that can be tested without MockMvc.",
+      "Use reversed-domain package naming (com.example.project), as the documentation states."
     ],
-    "component_library": "Not applicable - backend stack.",
-    "needs_verification": true,
-    "notes": "Spring Boot documents structuring your code in a main-application-class package, but does not mandate package-by-feature. That preference is the mentor's judgment - present it as such. This is the only stack in the registry with no framework-team skill collection."
+    "component_library": "Not applicable. Shared behaviour moves to a package both features depend on, at >=2 consumers.",
+    "notes": "Verified against the Spring Boot reference documentation. It also points at Spring Modulith for teams that need domain boundaries enforced rather than agreed."
   },
   "key_decisions": [
     {
-      "decision": "Package by feature or by layer",
-      "why_it_is_forced": "Spring Boot mandates neither, and the choice is close to irreversible once a codebase has grown.",
-      "options": [
-        "package by feature",
-        "package by layer"
-      ],
-      "reasonable_default": "By feature. A change to one feature should touch one package.",
-      "cost_of_getting_it_wrong": "By-layer packaging means every feature change touches every package, and no boundary can be enforced later without moving every file."
-    },
-    {
-      "decision": "Where the transaction boundary sits",
-      "why_it_is_forced": "@Transactional works on any layer and nothing tells you which one is right.",
-      "options": [
-        "service layer",
-        "repository layer",
-        "controller"
-      ],
-      "reasonable_default": "Service layer.",
-      "cost_of_getting_it_wrong": "A boundary on the repository means each write commits separately, so a half-completed operation is already durable."
-    },
-    {
-      "decision": "Entity exposure",
-      "why_it_is_forced": "Returning entities directly works and is the fastest thing to write.",
-      "options": [
-        "DTOs at the boundary",
-        "entities returned directly"
-      ],
-      "reasonable_default": "DTOs. Always.",
-      "cost_of_getting_it_wrong": "Entities as responses leak the schema, serialize lazy relations at the worst moment, and make every column rename an API break."
-    },
-    {
-      "decision": "Security model",
-      "why_it_is_forced": "Spring Security is powerful and configures nothing useful by default.",
-      "options": [
-        "method security",
-        "URL-based rules",
-        "resource server / OAuth2",
-        "gateway-enforced"
-      ],
-      "reasonable_default": "One model, written down. Mixing method and URL security puts the answer in two places.",
-      "cost_of_getting_it_wrong": "A route that appears protected by a URL rule while the method is callable from elsewhere is how internal endpoints leak."
-    },
-    {
       "decision": "Build tool",
-      "why_it_is_forced": "Maven and Gradle both work and a repository should have exactly one.",
+      "why_it_is_forced": "Maven and Gradle are both first-class, and the wrapper committed to the repository decides it for everyone.",
       "options": [
         "Maven",
         "Gradle"
       ],
-      "reasonable_default": "Whichever wrapper the repository already contains.",
-      "cost_of_getting_it_wrong": "Two build definitions drift, and CI ends up building something different from what developers build."
+      "reasonable_default": "Whatever the team and the organisation already run.",
+      "cost_of_getting_it_wrong": "Switching later rewrites the build, the CI pipeline and every developer's muscle memory."
+    },
+    {
+      "decision": "Persistence approach",
+      "why_it_is_forced": "Spring Data JPA, JDBC and jOOQ are all supported and produce very different code.",
+      "options": [
+        "Spring Data JPA",
+        "Spring Data JDBC",
+        "jOOQ",
+        "JdbcTemplate"
+      ],
+      "reasonable_default": "Spring Data JPA for domain-shaped data; JDBC or jOOQ when the queries are the product.",
+      "cost_of_getting_it_wrong": "JPA's lazy loading and identity semantics leak into the service layer, so replacing it later is not a swap."
+    },
+    {
+      "decision": "Package-by-feature or package-by-layer",
+      "why_it_is_forced": "Spring imposes nothing, and the argument is as old as the framework.",
+      "options": [
+        "package-by-feature",
+        "package-by-layer",
+        "Spring Modulith"
+      ],
+      "reasonable_default": "Package-by-feature: it is what the Spring Boot reference documentation shows.",
+      "cost_of_getting_it_wrong": "Package-by-layer makes every feature change a three-package edit and lets any service reach any repository."
+    },
+    {
+      "decision": "Security model",
+      "why_it_is_forced": "Spring Security is powerful and defaults to locking everything; the policy is yours.",
+      "options": [
+        "stateless JWT",
+        "session-based",
+        "OAuth2 resource server",
+        "external gateway"
+      ],
+      "reasonable_default": "Decide once, and make each endpoint's authorization decision explicit including 'permitAll on purpose'.",
+      "cost_of_getting_it_wrong": "A misread security config either exposes an endpoint or blocks a working one, and both look like configuration noise."
+    },
+    {
+      "decision": "Test database strategy",
+      "why_it_is_forced": "Nothing forces a choice, and the cheap option diverges from production.",
+      "options": [
+        "H2 in memory",
+        "Testcontainers",
+        "shared dev database"
+      ],
+      "reasonable_default": "Testcontainers when production is not H2.",
+      "cost_of_getting_it_wrong": "A suite green against H2 gives no evidence about the database you actually deploy against."
     }
   ],
   "operability": {

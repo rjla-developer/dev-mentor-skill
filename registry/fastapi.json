@@ -116,31 +116,31 @@
     "layers": [
       {
         "name": "unit",
-        "belongs_here": "pure business rules and validation logic",
-        "does_not_belong_here": "anything crossing the request boundary",
-        "cost": "cheap",
-        "signal_you_picked_wrong": "the test constructs a Request object just to call a rule"
+        "belongs_here": "business rules and pure functions, called directly",
+        "does_not_belong_here": "anything needing a request or a database",
+        "cost": "cheapest",
+        "signal_you_picked_wrong": "the test spins up TestClient to check one calculation"
       },
       {
-        "name": "integration",
-        "belongs_here": "the real app through TestClient, with dependency overrides for what leaves the process",
-        "does_not_belong_here": "branch enumeration",
-        "cost": "moderate - and this is where the real defects are"
+        "name": "integration (TestClient)",
+        "belongs_here": "the real request path: dependency overrides, validation, serialisation and status codes",
+        "does_not_belong_here": "exhaustive branch coverage of business rules",
+        "cost": "moderate; this is where most real bugs are caught in this stack"
       },
       {
         "name": "contract",
-        "belongs_here": "that the response shape matches what clients depend on",
+        "belongs_here": "that the OpenAPI schema still matches what consumers rely on",
         "does_not_belong_here": "internal behaviour",
-        "cost": "cheap"
+        "cost": "cheap once wired, and it catches breaking changes nothing else sees"
       },
       {
         "name": "e2e",
-        "belongs_here": "the deployed surface",
+        "belongs_here": "flows against a real database and real dependencies",
         "does_not_belong_here": "coverage",
-        "cost": "slow"
+        "cost": "slow, needs fixtures and teardown"
       }
     ],
-    "proportions": "FastAPI team: test through TestClient with normal def functions, not async def, so pytest runs without complications. They recommend exercising the real request/response cycle rather than mocking the app.",
+    "proportions": "No proportions stated by the FastAPI team. The stack's own shape argues for weight at the TestClient layer: dependency overrides, validation and serialisation are where FastAPI applications actually break.",
     "commands": {
       "full_suite": "pytest",
       "coverage": "pytest --cov",
@@ -148,23 +148,23 @@
       "lint": "ruff check ."
     },
     "rules": [
-      "Test through TestClient against the real app. It exercises dependency resolution, validation and serialization - where the defects actually are.",
-      "Test functions are normal def, not async def. The team states this explicitly.",
-      "Replace external systems with dependency_overrides, not by monkeypatching module internals. The override is the supported seam.",
-      "Every endpoint has at least one test for its failure response, not only its success response.",
-      "Clear dependency_overrides between tests or one test's override silently configures the next."
+      "Prefer TestClient over mocking the router. It exercises dependency resolution, validation and serialisation - the three things that break in production.",
+      "Override dependencies with app.dependency_overrides rather than patching module globals, and clear it between tests.",
+      "Test the boundary of every validation rule, not just the happy value.",
+      "Async endpoints need an async-aware runner. Read pyproject.toml before assuming pytest is configured for it."
     ],
     "traps": [
-      "Mocking the router instead of using TestClient skips validation and serialization - the layers most likely to be wrong.",
-      "A leaked dependency_overrides entry makes a later test pass for the wrong reason.",
-      "async def test functions without the right plugin either never run or run outside the app's event loop.",
-      "A response_model silently drops fields, so the test asserts the trimmed output while the endpoint returns more than declared.",
-      "Module-level state and mutable defaults survive between tests in the same process."
+      "app.dependency_overrides left uncleared leaks into the next test, so a later test passes for the wrong reason.",
+      "A sync def endpoint doing blocking I/O runs in a threadpool and passes every test, then serialises under load.",
+      "Reusing the ORM model as a response model: the test passes and the endpoint quietly returns password hashes or internal flags.",
+      "A test database created per test but sharing a session with the app means the app sees uncommitted state - or does not see committed state.",
+      "Pydantic v1 and v2 behave differently on validation and serialisation; a test written against one is not evidence about the other."
     ],
     "what_not_to_test": [
-      "That Pydantic validates types, or that FastAPI parses a path parameter.",
-      "Generated OpenAPI output, unless it is a published contract.",
-      "Alembic migration files as units - exercise them by running them."
+      "That FastAPI validates a declared type or that it returns 422 for a bad body - that tests the framework.",
+      "Pydantic models with no validators.",
+      "Generated OpenAPI structure, beyond the contract points consumers depend on.",
+      "Alembic migration modules themselves; test the resulting schema instead."
     ],
     "notes": "Prefer FastAPI's TestClient for integration tests over mocking the router - it exercises dependency overrides, validation and serialization, which is where the real bugs are. Read pyproject.toml for the configured runner and typechecker before assuming these commands."
   },
@@ -175,110 +175,122 @@
     "extract_package": ">=2 features import the same internal module"
   },
   "architecture": {
-    "recommended_by": "community",
+    "recommended_by": "framework-team",
     "source_url": "https://fastapi.tiangolo.com/tutorial/bigger-applications/",
-    "pattern": "routers with a service layer",
-    "folder_strategy": "feature-first",
+    "pattern": "APIRouter packages with shared dependencies",
+    "folder_strategy": "hybrid",
     "layers": [
       {
-        "name": "Router",
-        "holds": "path operations, request/response models, dependencies",
-        "must_not": "hold business rules - an endpoint past 40 lines has absorbed the service"
+        "name": "app/main.py",
+        "holds": "the FastAPI instance and include_router calls, plus app-wide dependencies",
+        "must_not": "path operations of its own beyond a root endpoint"
       },
       {
-        "name": "Service",
-        "holds": "business rules",
-        "must_not": "import fastapi - a module that raises HTTPException is not a service"
+        "name": "app/routers/",
+        "holds": "one module per resource, each exposing an APIRouter with its prefix, tags, dependencies and responses set at router level",
+        "must_not": "business rules - an endpoint function past ~40 lines has absorbed the service layer"
       },
       {
-        "name": "Repository / data access",
-        "holds": "queries and persistence",
-        "must_not": "contain business rules"
+        "name": "app/dependencies.py",
+        "holds": "shared dependencies used by more than one router",
+        "must_not": "feature-specific dependencies, which belong with their router"
       },
       {
-        "name": "Schemas",
-        "holds": "Pydantic models for the transport contract",
-        "must_not": "double as ORM models - one changes for the API, the other for the database"
+        "name": "app/internal/",
+        "holds": "routers not part of the public API surface"
+      },
+      {
+        "name": "service layer",
+        "holds": "business rules, callable without a request object",
+        "must_not": "knowledge of HTTP",
+        "optional": true
       }
     ],
     "variants": [
       {
-        "name": "Routers only",
-        "use_when": "a small service with few rules",
-        "cost": "rules end up in endpoints and become unreachable from a worker or a CLI"
+        "name": "The documented layout (app/ with routers/ and dependencies.py)",
+        "use_when": "the default; it is what the FastAPI docs describe for bigger applications",
+        "cost": "routers/ is a type-based folder, so a feature's router, schemas and service end up in three places"
       },
       {
-        "name": "Routers plus a service layer",
-        "use_when": "the same rules serve HTTP and anything else",
-        "cost": "one more hop, unnecessary while HTTP is the only caller"
+        "name": "Package per feature, each with its own router",
+        "use_when": "features are independent and each owns its schemas, service and data access",
+        "cost": "you leave the documented layout, so newcomers who read the FastAPI tutorial will not recognise it"
+      },
+      {
+        "name": "Explicit service layer between routers and data",
+        "use_when": "business rules are reused by more than one endpoint, or by a background job",
+        "cost": "one more hop for trivial CRUD; premature for an app that is mostly pass-through"
       }
     ],
     "rules": [
-      "A path operation does transport only: validate, delegate, shape the response.",
-      "A service module never imports fastapi. Raising HTTPException from a service ties business rules to the web layer.",
-      "Transport schemas and database models are separate types even when identical - they change for different reasons.",
-      "Dependencies are the injection seam. Anything the tests need to replace is a dependency, not a module-level import."
+      "Set prefix, tags, dependencies and responses on the APIRouter, not repeated on every path operation.",
+      "Use relative imports within the package, and import the submodule rather than the name: `from .routers import items, users`. Importing `router` from each module overwrites the previous one - the docs call this out explicitly.",
+      "An endpoint function handles transport. Once it holds branching business logic it belongs in a function that can be called without a Request.",
+      "Pydantic models are the request/response contract. Do not reuse the database model as the response model - it leaks columns you did not mean to expose.",
+      "Every schema change ships with a reversible migration and a stated deploy order."
     ],
-    "component_library": "Not applicable - backend stack.",
-    "needs_verification": true,
-    "notes": "FastAPI documents a bigger-applications router layout but does not prescribe a service layer. The service-layer rules here are the mentor's judgment, not the maintainers' - present them as such."
+    "component_library": "Not applicable. Shared dependencies go in app/dependencies.py once a second router needs them - not before.",
+    "notes": "The FastAPI docs describe routers/ and dependencies.py, which is a type-first layout for a small app. For larger applications the mentor may propose package-per-feature, but must say that this departs from the documented structure."
   },
   "key_decisions": [
     {
-      "decision": "Sync or async throughout",
-      "why_it_is_forced": "FastAPI supports both, and mixing them badly blocks the event loop with no visible error.",
+      "decision": "Sync or async endpoints",
+      "why_it_is_forced": "FastAPI supports both, and the wrong choice is invisible until the service is under load.",
       "options": [
-        "async throughout",
-        "sync throughout",
-        "mixed deliberately"
+        "async def with async drivers",
+        "sync def in the threadpool",
+        "mixed, deliberately"
       ],
-      "reasonable_default": "Pick one for data access and stay with it.",
-      "cost_of_getting_it_wrong": "A blocking call inside an async path operation stalls every concurrent request - it looks like a performance problem, not a bug."
+      "reasonable_default": "async def with async-capable drivers throughout; sync def only when the library has no async version.",
+      "cost_of_getting_it_wrong": "A sync endpoint doing blocking I/O passes every test and serialises requests in production."
     },
     {
-      "decision": "ORM and session lifecycle",
-      "why_it_is_forced": "No ORM is bundled, and where a session opens and closes is not decided for you.",
+      "decision": "ORM and migrations",
+      "why_it_is_forced": "FastAPI bundles no persistence and no migration tool.",
       "options": [
-        "SQLAlchemy",
+        "SQLAlchemy + Alembic",
         "SQLModel",
         "Tortoise",
-        "raw asyncpg"
+        "raw SQL"
       ],
-      "reasonable_default": "Session per request, provided as a dependency.",
-      "cost_of_getting_it_wrong": "A session shared across requests leaks data between users; one never closed exhausts the pool under load."
+      "reasonable_default": "SQLAlchemy with Alembic unless the team has a reason otherwise.",
+      "cost_of_getting_it_wrong": "Schema changes without a reversible migration are the most common cause of irreversible production damage in this stack."
     },
     {
-      "decision": "Schema versus model separation",
-      "why_it_is_forced": "Pydantic schemas and ORM models look interchangeable and are not.",
+      "decision": "Where business logic lives",
+      "why_it_is_forced": "FastAPI's documented layout has routers and dependencies, and no service layer, so nothing stops logic accumulating in endpoints.",
       "options": [
-        "separate types",
-        "shared types"
+        "logic in endpoints",
+        "service layer",
+        "domain layer with repositories"
       ],
-      "reasonable_default": "Separate. They change for different reasons.",
-      "cost_of_getting_it_wrong": "Shared types turn a database column rename into an unintended API breaking change."
+      "reasonable_default": "Logic in endpoints while they stay thin; extract a service the moment a rule is needed by a second caller.",
+      "cost_of_getting_it_wrong": "Business rules trapped in endpoint functions can only be tested through HTTP, which makes every rule expensive to verify."
     },
     {
       "decision": "Authentication and authorization",
-      "why_it_is_forced": "FastAPI ships security utilities but no policy.",
+      "why_it_is_forced": "Security utilities are provided; the policy is not.",
       "options": [
         "OAuth2 with JWT",
         "session cookies",
-        "API keys",
-        "delegated to a gateway"
+        "external identity provider",
+        "API keys"
       ],
-      "reasonable_default": "Decide where the check lives - dependency, middleware or gateway - and keep it in one place.",
-      "cost_of_getting_it_wrong": "Authorization enforced in two places is authorization forgotten in one."
+      "reasonable_default": "Decide the mechanism once and attach the authorization decision to every router, including 'public on purpose'.",
+      "cost_of_getting_it_wrong": "Per-endpoint authorization added ad hoc leaves gaps nothing surfaces."
     },
     {
-      "decision": "Background work",
-      "why_it_is_forced": "BackgroundTasks, a worker queue and a scheduler have very different delivery guarantees.",
+      "decision": "Packaging and runtime",
+      "why_it_is_forced": "Deployment shape determines worker model, startup cost and how configuration is delivered.",
       "options": [
-        "BackgroundTasks",
-        "Celery/RQ/Arq",
-        "external scheduler"
+        "uvicorn workers",
+        "gunicorn + uvicorn workers",
+        "container",
+        "serverless"
       ],
-      "reasonable_default": "BackgroundTasks only for work that may be lost.",
-      "cost_of_getting_it_wrong": "BackgroundTasks vanish when the process restarts - work you assumed was queued was never durable."
+      "reasonable_default": "Decide before building: serverless in particular constrains startup time and background work.",
+      "cost_of_getting_it_wrong": "Background tasks and in-process caches that work under a long-lived worker silently do nothing under serverless."
     }
   ],
   "operability": {

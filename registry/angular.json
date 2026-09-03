@@ -63,23 +63,23 @@
     "layers": [
       {
         "name": "unit",
-        "belongs_here": "services, pipes, pure functions and signal-derived state",
+        "belongs_here": "services, pipes, guards, pure functions and business rules the style guide told you to move out of components",
         "does_not_belong_here": "anything needing a rendered template",
-        "cost": "cheap",
+        "cost": "cheap and fast",
         "signal_you_picked_wrong": "the test builds a TestBed just to call one method"
       },
       {
         "name": "component",
-        "belongs_here": "that a component renders and reacts to input and user events - the presentation rules",
-        "does_not_belong_here": "business rules reachable from a service",
-        "cost": "moderate; needs TestBed",
-        "signal_you_picked_wrong": "you are asserting DOM structure instead of behaviour"
+        "belongs_here": "the template contract: what renders for given inputs, and what the component emits on user interaction",
+        "does_not_belong_here": "business rules that live in a service",
+        "cost": "moderate - needs TestBed and a fixture",
+        "signal_you_picked_wrong": "the test drives business branches by clicking"
       },
       {
         "name": "integration",
-        "belongs_here": "several components and services wired together through real DI",
-        "does_not_belong_here": "branch enumeration",
-        "cost": "slower"
+        "belongs_here": "a feature's components and services wired together, including routing",
+        "does_not_belong_here": "exhaustive branch coverage",
+        "cost": "slower, more setup"
       },
       {
         "name": "e2e",
@@ -88,6 +88,7 @@
         "cost": "slowest and most brittle"
       }
     ],
+    "proportions": "No proportions stated by the Angular team. The style guide's separation rule sets the shape indirectly: logic pushed out of components is unit-testable, so most tests should be unit tests.",
     "commands": {
       "full_suite": "ng test --watch=false",
       "e2e": "ng e2e",
@@ -95,21 +96,22 @@
       "build": "ng build"
     },
     "rules": [
-      "ng test needs --watch=false in CI or the command never exits and the job hangs until it times out.",
-      "Read angular.json for the configured test builder before assuming a runner.",
-      "Test signals and computed state through their public effect, not by reaching into internals.",
-      "A component test that mocks every injected service is asserting the mocks. Let real, side-effect-free services through."
+      "Test files sit beside their subject and end in .spec.ts, matching the style guide's naming rule.",
+      "ng test must run with --watch=false in CI or the command never exits and the job hangs until it is killed.",
+      "If a rule needs TestBed to be tested, it is in the wrong place - the style guide says to move it out of the component first.",
+      "Read angular.json for the configured test builder before assuming a runner."
     ],
     "traps": [
-      "Forgetting --watch=false turns a CI failure into a hung job with no output.",
-      "Change detection: an assertion made before detectChanges passes or fails for reasons unrelated to the code.",
-      "Zoneless and OnPush components need an explicit trigger; a test that passes under default change detection can fail in the real app.",
-      "Over-mocked TestBed setups drift from the real provider graph, so the suite stays green while DI is broken."
+      "A forgotten await fixture.whenStable() or fixture.detectChanges() makes an assertion run against the pre-change DOM, so the test passes on the old value.",
+      "Zone-based async tests using fakeAsync pass while the real app, running on a different change-detection path, does not.",
+      "Over-mocking the dependency graph in a component test means the test asserts the mocks, not the wiring it existed to check.",
+      "A test that subscribes without unsubscribing leaks between specs, so failures appear in an unrelated test file."
     ],
     "what_not_to_test": [
-      "That Angular's DI works, that a pipe is pure, that a router outlet renders.",
-      "Exact template structure - it changes on every markup refactor.",
-      "Generated files and polyfills."
+      "That a component is created - a test asserting only toBeTruthy() proves the constructor ran.",
+      "Framework behaviour: that @Input binds, that the router navigates.",
+      "Exact DOM structure. It changes on every template refactor.",
+      "Generated files."
     ],
     "notes": "Read angular.json for the configured test builder before assuming the runner. --watch=false is required in CI or the command never exits."
   },
@@ -122,91 +124,98 @@
   "architecture": {
     "recommended_by": "framework-team",
     "source_url": "https://angular.dev/style-guide",
-    "pattern": "feature modules with standalone components",
+    "pattern": "feature-grouped standalone components",
     "folder_strategy": "feature-first",
     "layers": [
       {
-        "name": "core",
-        "holds": "app-wide singletons: services, interceptors, guards",
-        "must_not": "hold anything a single feature owns"
+        "name": "src/",
+        "holds": "all Angular UI code - TypeScript, HTML and styles - with the bootstrap in main.ts",
+        "must_not": "configuration files, which stay at the project root"
       },
       {
-        "name": "shared",
-        "holds": "reusable presentational components, pipes, directives",
-        "must_not": "hold state or feature logic - a shared folder that grows state has become a second core"
+        "name": "feature directory",
+        "holds": "everything one feature needs: its components, its services, its routes",
+        "must_not": "code a second feature also needs - that moves up, it does not get imported sideways"
       },
       {
-        "name": "features",
-        "holds": "self-contained feature areas: pages, components, routes and their own services",
-        "must_not": "import from another feature"
+        "name": "component / directive",
+        "holds": "code relating to the UI shown on the page",
+        "must_not": "business logic, validation rules and data transformations - the style guide says to refactor those into separate functions or classes"
       }
     ],
     "variants": [
       {
-        "name": "Single app, feature folders",
-        "use_when": "one deployable, one team",
-        "cost": "boundaries are conventions - nothing stops a cross-feature import but review"
+        "name": "Feature directories (the style guide's recommendation)",
+        "use_when": "the default for any Angular app",
+        "cost": "you must decide per file whether something is shared, and that decision gets made badly under deadline"
       },
       {
         "name": "Workspace libraries",
-        "use_when": ">=2 features import the same internal module, or two teams own different areas",
-        "cost": "build and release complexity; enforced boundaries you now have to maintain"
+        "use_when": ">=2 features import the same internal module, or separate teams own separate areas",
+        "cost": "build and release complexity, and boundaries you now have to maintain"
+      },
+      {
+        "name": "core/ + shared/ + features/ (community convention)",
+        "use_when": "a team already knows this layout and will keep it consistent",
+        "cost": "core/ and shared/ are type-based directories, which the official style guide advises against; shared/ in particular accumulates state and becomes a second app"
       }
     ],
     "rules": [
-      "A feature never imports from another feature. Shared data goes through a core service both features inject.",
-      "core holds singletons only. If it has one instance per feature, it is not core.",
-      "shared holds presentational code only. State in shared is a defect.",
-      "Promote a folder to a workspace library only when a second feature already imports it."
+      "Group files by feature, not by type. The style guide explicitly advises against directories named components, directives or services.",
+      "All Angular UI code lives under src/, with the bootstrap in main.ts.",
+      "File names separate words with hyphens: a UserProfile component is user-profile.ts, and its test is user-profile.spec.ts.",
+      "Code in a component or directive relates to what is on the page. Business logic, validation and data transformation move into separate functions or classes.",
+      "A feature never imports from another feature. Shared behaviour moves up to something both inject.",
+      "Split a directory before it gets hard to navigate. The style guide sets no number; growth_thresholds does."
     ],
-    "component_library": "Promote to shared at >=3 occurrences across >=2 feature areas. Below that the duplication is a coincidence, not a pattern.",
-    "needs_verification": true,
-    "notes": "The core/shared/features split and the feature-isolation rule are consistently reported across the ecosystem, and the Angular team's style guide was updated around v20 (suffix rules changed). The exact wording of the official guidance was not confirmed against angular.dev on 2026-08-28 - verify before quoting it as doctrine."
+    "component_library": "Promote to a shared location at >=3 occurrences across >=2 features. Anything promoted must be presentational: state in a shared component is how a shared folder turns into a second application.",
+    "notes": "Verified against angular.dev/style-guide. The community core/shared/features layout is recorded as a variant, not as doctrine - the official guidance is feature grouping and it warns against type-based directories."
   },
   "key_decisions": [
     {
       "decision": "State management",
-      "why_it_is_forced": "Angular ships signals and RxJS and takes no position on shared application state.",
+      "why_it_is_forced": "Angular ships signals and RxJS but takes no position above component state, so every app past a few screens picks something.",
       "options": [
         "signals only",
+        "RxJS services",
         "NgRx",
-        "NgRx SignalStore",
-        "services with RxJS subjects"
+        "NgRx SignalStore"
       ],
-      "reasonable_default": "Signals plus services until shared state genuinely spans features.",
-      "cost_of_getting_it_wrong": "It reaches every component and every test setup; changing it later is a UI-layer rewrite."
+      "reasonable_default": "Signals plus plain services until an observable flow genuinely needs RxJS. NgRx when several unrelated features read and write the same state.",
+      "cost_of_getting_it_wrong": "It reaches every component and every test setup. Changing it later is a rewrite of the feature layer."
     },
     {
       "decision": "Standalone components or NgModules",
-      "why_it_is_forced": "Both are supported and mixing them is legal and confusing.",
+      "why_it_is_forced": "Both work; the ecosystem moved to standalone but older codebases and tutorials use modules.",
       "options": [
-        "standalone throughout",
+        "standalone",
         "NgModules",
-        "mixed during migration"
+        "mixed"
       ],
-      "reasonable_default": "Standalone - it is the default for new applications.",
-      "cost_of_getting_it_wrong": "A mixed codebase means two mental models for every import."
+      "reasonable_default": "Standalone for anything new.",
+      "cost_of_getting_it_wrong": "A mixed codebase means two mental models and two ways to wire every dependency."
     },
     {
       "decision": "Single app or workspace libraries",
-      "why_it_is_forced": "Nothing enforces a feature boundary until it is a library.",
+      "why_it_is_forced": "The CLI supports both and neither is the default forever.",
       "options": [
-        "single app with feature folders",
-        "workspace libraries"
+        "single app",
+        "workspace with libraries"
       ],
       "reasonable_default": "Single app until a second feature imports the same internal module.",
-      "cost_of_getting_it_wrong": "Retrofitting library boundaries onto a codebase that ignored them means untangling every cross-feature import at once."
+      "cost_of_getting_it_wrong": "Splitting late means untangling imports that grew across a boundary that was never enforced."
     },
     {
-      "decision": "Rendering: SSR or client only",
-      "why_it_is_forced": "SSR changes what code may touch browser globals.",
+      "decision": "Server-side rendering",
+      "why_it_is_forced": "SSR changes what code may touch the DOM, and retrofitting it surfaces every hidden browser assumption at once.",
       "options": [
         "client only",
         "SSR",
-        "SSR with hydration"
+        "SSR with hydration",
+        "prerender"
       ],
-      "reasonable_default": "Decide before building - retrofitting SSR finds every window reference the hard way.",
-      "cost_of_getting_it_wrong": "Code written assuming a browser breaks on the server in ways that only appear at build or first request."
+      "reasonable_default": "Client only unless SEO or first-paint is a stated requirement.",
+      "cost_of_getting_it_wrong": "Adding SSR later breaks every component that touched window or document directly."
     }
   ],
   "operability": {
