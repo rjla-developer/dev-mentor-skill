@@ -267,6 +267,79 @@ This is the failure mode the Research-to-Action Gate exists to prevent, appearin
 output of the tool that enforces it. Plausible reasoning stated with more confidence than
 the evidence supports. Recorded here rather than quietly dropped.
 
+## Second experiment - Flutter, a dance-events app
+
+Same method, on a stack the registry fully covers: architecture verified against the
+Flutter team's own guide, six test rules, five forced decisions. The Alexa run tested the
+weakest case; this one tests the thesis.
+
+Task: list upcoming dance events in Mexico City, filter by dance style, open a detail,
+confirm or cancel attendance. Six rules, four of them carrying an exact boundary - an
+event starting *right now*, *exactly* at capacity, *exactly* two hours before, *exactly*
+80%. Local sample data, no backend, no deploy. The prompt named the stack and said nothing
+about architecture, tests or documentation.
+
+Run B answered: stage `prototype`, Provider + ChangeNotifier, shared_preferences, and
+**declined to install the official Flutter and Dart skills** - the skill argued against its
+own catalogue because this app has two routes and no backend, so the routing and JSON
+serialisation those skills cover barely exist here. Declining also keeps attribution clean:
+run B had no capability run A lacked.
+
+### Where dev-mentor was better
+
+| | Run A | Run B |
+|---|---|---|
+| Structure | `models/ screens/ state/ utils/ widgets/` - **by type** | `data/{models,repositories,services}/ features/{event_list,event_detail}/ shared/ui/` - **feature-first, MVVM** |
+| Tests | 29 | **68** |
+| Boundaries | all four covered | all four from **both sides at 1ms**: before yes, exact no, after no |
+| The 80% rule | tested | **five cases**, including 7/9 at 77.7% and full-beats-nearly-full |
+| `CLAUDE.md` | **none** | 141 lines: exact bounds, failure policy, **four landmines**, a `## Deferred` section |
+| Async states | not declared | **four**, including two *distinct* empty states with a clear-filter action |
+| Growth signals | not assessed | assessed; nearest was a 95-line `build()` against a 100 threshold, and it **declined to split it** for lack of an observed defect |
+
+Two things only run B did, and both are the doctrine working rather than the model being
+clever:
+
+- **It recorded the trap it paid for.** One of its landmines: `pumpAndSettle` never
+  settles on these screens because of a 30-second timer. That is precisely the trap the
+  Flutter registry entry warns about - hit, survived, and written down for the next person.
+- **It surfaced a product ambiguity run A never raised.** A two-hour cutoff on
+  *cancelling* does not imply a cutoff on *joining*. Run B decided it, tested it
+  explicitly, and documented it.
+
+### Where dev-mentor was worse
+
+**Run A launched the app. Run B did not.**
+
+Run A booted the iOS simulator, took screenshots, found a real visual defect - an
+overlapping header - diagnosed the root cause (a theme value resolving to null in that
+Flutter version), fixed it and re-verified by looking again.
+
+Run B ran `flutter build web` to confirm it compiles and never looked at a screen.
+
+This is the most uncomfortable result of the whole exercise, because presentation rules are
+half of what tests are supposed to protect. Run B verified the business rules with 68 tests
+and *assumed* the presentation ones. Run A looked, and found a bug no test in either suite
+would have caught.
+
+**The cause was the doctrine, not the discipline.** The quality gate said "run the suite and
+report the real result", and run B did exactly that. It never said "run the app". Fixed in
+the same commit as this entry: quality-gate.md now requires launching and actually looking
+at any UI, and saying plainly when the environment cannot.
+
+### Ties - which kill the easy claims
+
+Both caught the corrupted rule in the prompt. **Both used integer arithmetic for the 80%
+threshold and both explained the floating-point reason.** Both re-validated capacity at the
+repository rather than trusting the disabled button. Both had a clean analyzer and a README.
+
+### Honest summary
+
+Structure, test depth, recorded memory and reported restraint went to dev-mentor, and the
+architecture difference is the framework team's own doctrine against a layout that team
+advises against. Empirical verification went to the baseline, and it was not close: one run
+looked at the product and the other did not.
+
 ## Predictions that failed
 
 Recorded because a project whose premise is evidence over opinion has to publish the

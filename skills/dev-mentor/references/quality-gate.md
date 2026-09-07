@@ -67,6 +67,33 @@ If there is no suite at all, say so: "This project has no test suite; I could no
 the change beyond running it." Then propose the first test, not a testing strategy
 document.
 
+## If it has a screen, run it and look
+
+A green suite is not evidence the screen is right. Tests assert what you thought to
+assert; a rendered screen shows what you did not.
+
+**For anything with a UI, the gate is not complete until the app has been launched and a
+screen has actually been looked at.** Build succeeding is not the same as running, and
+running is not the same as looking.
+
+This exists because of an observed failure, not a preference. In a controlled comparison,
+the run *without* this rule wrote 68 passing tests, a clean analyzer and a compiling
+build - and shipped a screen with an overlapping header, caused by a theme value resolving
+to null in that framework version. The run that launched the app found it in one
+screenshot, diagnosed it and fixed it. No unit or widget test in either suite would ever
+have caught it.
+
+What "looked at" means:
+
+- launch on the real target - simulator, emulator or browser
+- reach the screens the change touched
+- capture what you saw, so the claim is evidence and not a memory
+- check the states that are easy to never see: empty, error, loading, and the longest
+  string a real user would enter
+
+If the environment cannot run it, say so explicitly - "I could not launch this, so the
+visual result is unverified" - and never let that read as though it passed.
+
 ## What makes a test worth having
 
 Judge each test on utility, not on whether it exists:
@@ -149,5 +176,6 @@ this document directly and say that you are doing so.
 - [ ] Full suite command taken from the project, not guessed
 - [ ] Full suite run
 - [ ] Real result reported, including failures
+- [ ] If it has a UI: app launched, screens looked at, or the inability stated plainly
 - [ ] gap_map re-read; testing gap for this stack handled
 ```

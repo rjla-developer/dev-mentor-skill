@@ -228,6 +228,9 @@ Full doctrine in `references/quality-gate.md`. The two rules that never bend:
   test; the existing suite staying green is enough.
 - **Run the whole suite at the end of every task and report the real result.** Never say
   "done" without a run. If it fails, fix it or say so. Never omit it.
+- **If it has a screen, run it and look at it.** A green suite proves what you thought to
+  assert; a rendered screen shows what you did not. Build succeeding is not running, and
+  running is not looking. If you cannot launch it, say the visual result is unverified.
 
 Use the stack's `testing` entry, not only the generic doctrine: `layers[].belongs_here`
 decides where a new test goes, `signal_you_picked_wrong` tells you when it sits at the
