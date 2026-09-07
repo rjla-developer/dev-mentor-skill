@@ -27,8 +27,14 @@ the handful of decisions you made in two lines at the end, and offer to change t
 and wait. Switch to it when any of these happen, and say that you switched:
 
 - the user asks to be consulted ("pregúntame", "quiero decidir", "ask me first")
-- the user names a stack, argues architecture, or corrects a technical choice
+- the user argues architecture, or corrects a technical choice you made
 - `CLAUDE.md` sets `mentor_mode: technical`
+
+**Naming a technology is not one of them.** "I want an app in Flutter" says they know which
+framework they want; it says nothing about wanting to be consulted on state management. A
+stack named in the request is one fewer decision to make, not a signal to start
+interrogating - treating it as one produced two runs of the same prompt behaving
+differently for no reason the user could see.
 
 **Ask in either mode - this overrides `guided`** when a decision is both hard to reverse
 *and* depends on something only the user knows:

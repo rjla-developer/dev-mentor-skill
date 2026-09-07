@@ -340,6 +340,57 @@ architecture difference is the framework team's own doctrine against a layout th
 advises against. Empirical verification went to the baseline, and it was not close: one run
 looked at the product and the other did not.
 
+## Third run - the same Flutter task, after the fix
+
+The run-the-app rule shipped in 0.2.0 was added because run B1 never looked at a screen.
+This run is the check on whether a rule written into the doctrine changes behaviour.
+
+**It did, and by more than the baseline managed.**
+
+| | Run A (no skill) | Run B1 (0.1.x) | Run B2 (0.2.0) |
+|---|---|---|---|
+| Launched the app | yes | **no** | **yes** |
+| Visual defects found | 1 | 0 | **3** |
+| Tests | 29 | 68 | 54 |
+| `CLAUDE.md` | none | 141 lines, written last | **122 lines, written before the code** |
+| Declared what it did not verify | no | latency unmeasured | Android build not run |
+
+The three defects run B2 found:
+
+1. A real layout crash - `Row` with `CrossAxisAlignment.stretch` inside a list throws
+   "infinite height". Caught by the widget tests.
+2. The confirmed-count overlapping the "Últimos lugares" badge. Only visible by looking.
+3. **Being enrolled was communicated solely by a disabled button** - which reads as an
+   error, not as "you have a place". Only visible by looking.
+
+The third is not a bug. It is a presentation rule resolved badly, and no test would ever
+have flagged it because the widget rendered exactly as written. That is the category the
+run-the-app rule exists for, and it is the category the developer said tests are supposed
+to protect and structurally cannot.
+
+Two other changes worth recording:
+
+- **It wrote `CLAUDE.md` before the code**, stating why: to fix the structural rules before
+  writing against them. That turns the file from a description of what was built into a
+  constraint on what gets built.
+- **Test count fell from 68 to 54** while the app got launched. Every rule still carries its
+  exact boundary; what the missing fourteen covered is unknown. Recorded rather than
+  explained away.
+
+### A defect the run exposed in the skill itself
+
+Run B1 switched to `technical` mode and asked four questions. Run B2, on the identical
+prompt, stayed in `guided` and asked none. The developer noticed and asked why.
+
+The cause was a trigger written into `SKILL.md`: "the user names a stack" moved the skill
+out of `guided`. That is wrong. Naming a technology says the framework is already chosen;
+it says nothing about wanting to be consulted on state management. The same prompt behaved
+two different ways for a reason no user could see.
+
+Fixed: naming a stack is now explicitly not a trigger. `technical` requires the user asking
+to be consulted, arguing architecture, correcting a choice, or setting `mentor_mode` in
+`CLAUDE.md`.
+
 ## Predictions that failed
 
 Recorded because a project whose premise is evidence over opinion has to publish the
