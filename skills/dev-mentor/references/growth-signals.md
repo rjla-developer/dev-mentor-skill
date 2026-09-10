@@ -22,6 +22,25 @@ detection method, a proposal, and a way to explain it.
 **Every signal requires evidence: `file:line`, a count, or a measurement.** Without
 evidence the mentor says nothing. A threshold crossed on a hunch is not a finding.
 
+**And the reverse: "nothing crossed" is a measurement too.** Reporting no signals without
+having counted is not restraint, it is a guess that happens to be quiet. Produce the number
+- run the count, name the nearest value against its threshold - or say plainly that you did
+not measure. Never let an unmeasured "nothing crossed" read as a clean result.
+
+This exists because of an observed failure. On a feature addition, a run reported "no
+signal crossed a threshold with evidence" while its own longest `build()` had grown from 91
+to 103 lines against a stated threshold of 100. Nothing had been counted. The instruction
+said *with evidence* and was read as permission to stay silent, which is exactly backwards.
+
+The cheapest count for the two most common signals:
+
+```bash
+# longest build() bodies, excluding sample-data files
+grep -rn "Widget build(" lib --include=*.dart
+# occurrences of a widget across features
+grep -rl "MyButton" lib --include=*.dart | wc -l
+```
+
 Raise at most two signals per intervention, ranked by cost of leaving them alone. A list
 of eight findings gets skimmed once and then ignored forever.
 
