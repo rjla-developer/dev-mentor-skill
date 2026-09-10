@@ -30,6 +30,13 @@ REPO_ROOT = os.path.dirname(SCRIPT_DIR)
 SKILLS_DIR = os.path.join(REPO_ROOT, "skills")
 
 MAX_SKILL_LINES = 500          # progressive disclosure: SKILL.md is the entry point only
+
+# The doctrine costs tokens on every run, and this project caps the user's CLAUDE.md at
+# 150 lines while its own references had no limit at all. These two freeze that growth.
+# The per-file cap matters more than the total, because references load on demand: one
+# oversized file is a bill you pay whenever its step comes up.
+MAX_REFERENCE_BYTES = 12_500   # ~3.1k tokens: the largest file today, frozen
+MAX_REFERENCES_TOTAL = 52_000  # ~13k tokens for the whole set
 TOC_REQUIRED_ABOVE = 100       # a longer reference gets read partially without a map
 MAX_NAME_LENGTH = 64
 MAX_DESCRIPTION_LENGTH = 1024
@@ -194,6 +201,36 @@ def check_links(path: str, where: str, allow_references: bool) -> None:
                               os.path.relpath(alt, REPO_ROOT)))
 
 
+def check_reference_budget() -> None:
+    """The doctrine has a token cost. Cap it, the way CLAUDE.md is capped."""
+    total = 0
+    for skill_dir in sorted(os.listdir(SKILLS_DIR)):
+        ref_dir = os.path.join(SKILLS_DIR, skill_dir, "references")
+        if not os.path.isdir(ref_dir):
+            continue
+        for name in sorted(os.listdir(ref_dir)):
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(ref_dir, name)
+            try:
+                size = os.path.getsize(path)
+            except OSError as exc:
+                error(name, "cannot stat: {}".format(exc))
+                continue
+            total += size
+            if size > MAX_REFERENCE_BYTES:
+                error("{}/references/{}".format(skill_dir, name),
+                      "{} bytes, over the {} cap (~{}k tokens). Every run that reaches "
+                      "this file pays for it. Cut it, or split the part that belongs to a "
+                      "later stage into the step that needs it."
+                      .format(size, MAX_REFERENCE_BYTES, size // 4000))
+    if total > MAX_REFERENCES_TOTAL:
+        error("references", "{} bytes across all reference files, over the {} cap "
+                            "(~{}k tokens). This project caps the user's CLAUDE.md at 150 "
+                            "lines; its own doctrine does not get an exemption."
+              .format(total, MAX_REFERENCES_TOTAL, total // 4000))
+
+
 def main() -> int:
     if not os.path.isdir(SKILLS_DIR):
         print("FATAL: {} not found.".format(SKILLS_DIR), file=sys.stderr)
@@ -207,6 +244,8 @@ def main() -> int:
 
     for skill_dir in skill_dirs:
         check_skill(skill_dir)
+
+    check_reference_budget()
 
     print("validate_skills: checked {} skill(s)".format(len(skill_dirs)))
     for message in errors:

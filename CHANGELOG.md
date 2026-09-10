@@ -35,6 +35,28 @@ skills. Where a change was caused by an observed failure, the failure is named.
 - `sync_registry.py` reformatted the whole of `index.json` on every run, turning a
   one-line change into a 129-line diff. The weekly pull request exists to be read.
 
+## Unreleased
+
+### Changed
+
+- **The doctrine no longer reloads when the project already carries it.** A generated
+  `CLAUDE.md` is the same doctrine compiled for that codebase at an eighth of the size, so
+  runs after the first read it instead of the reference set. References also stopped
+  pre-loading - each one loads when its step is reached - and the registry is filtered to
+  the fields in use rather than printed whole. Measured: ~26k tokens per run down to ~12k
+  on a new project and ~7k on one with a `CLAUDE.md`.
+- **The doctrine now has a size cap**, enforced in CI. This project capped the user's
+  `CLAUDE.md` at 150 lines and exempted its own references from any limit, which is how
+  one of them reached 11.9k bytes.
+
+### Fixed
+
+- **A run reported "no growth signal crossed a threshold" without counting.** Its own
+  longest `build()` had grown from 91 to 103 lines against a stated threshold of 100. The
+  instruction said "every signal requires evidence" and was read as permission to stay
+  silent. `growth-signals.md` now requires producing the number - the nearest value against
+  its threshold - or saying plainly that nothing was measured.
+
 ## 0.1.0
 
 Initial release: dev-mentor orchestrator, mentor-review, mentor-clean, an eight-stack

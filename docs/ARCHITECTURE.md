@@ -82,6 +82,39 @@ silently never fires, which is the worst possible failure for a guardrail. The m
 field is only for *additional* hook files. This was shipped broken in 0.1.0 and found the
 first time the plugin was installed from the marketplace.
 
+## The doctrine has a token cost
+
+Loading a reference puts it in context, and that bill arrives on every run. Measured
+before any of this was addressed: **~26k tokens per run** - 4.4k for `SKILL.md`, 12.9k for
+the whole reference set loaded up front, and ~8.2k for printing two registry files whole.
+
+That is 2.6% of a 1M window, so it was never catastrophic. The problem was the trajectory:
+`delivery-gates.md` alone reached 11.9k bytes, and this project capped the *user's*
+`CLAUDE.md` at 150 lines while exempting its own doctrine from any limit at all.
+
+Three rules and a cap:
+
+1. **A project's `CLAUDE.md` replaces the references.** It is the doctrine already
+   distilled for that codebase - architecture rules, test rules, the landmines that
+   project actually hit - at ~1.6k tokens against ~12.9k for the reference set. Run two
+   onwards reads it instead.
+2. **Never pre-load.** A reference loads when its step is reached. A prototype never needs
+   `delivery-gates.md`; a typo fix needs almost none of it.
+3. **Filter the registry.** Fetch the stack entry to a file and read the fields the step
+   needs, rather than printing 300 lines of JSON.
+4. **`MAX_REFERENCE_BYTES` and `MAX_REFERENCES_TOTAL`** in `scripts/validate_skills.py`
+   freeze the growth. Both sit just above today's values on purpose: adding to the doctrine
+   now requires taking something out.
+
+Measured effect: **~26k to ~12k on a new project, and to ~7k on a project that already has
+a generated `CLAUDE.md`.** Not the tenth that was estimated before measuring - `SKILL.md`
+itself is 4.4k and always loads, which sets the floor.
+
+What is deliberately *not* optimised is the test-iteration loop. Writing a test, running
+it, reading the failure and fixing it costs a few thousand tokens per task, and that is the
+work. Cutting there means shipping unverified code; cutting the doctrine reload costs
+nothing.
+
 ## Degrees of freedom
 
 Calibrated per task, following the guidance that judgment work wants prose and

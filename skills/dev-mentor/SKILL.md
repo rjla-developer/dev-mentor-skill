@@ -47,11 +47,38 @@ differently for no reason the user could see.
 Everything else in `guided` is yours to decide well and declare briefly. A decision the
 user cannot reverse cheaply is worth an interruption; one they can is not.
 
+## Context budget
+
+Reading a file puts it in context, and you pay for it on every run. The full reference set
+is roughly 13k tokens; a `CLAUDE.md` this skill generated is about 1.6k and holds the same
+doctrine already compiled for that project. Three rules follow from that.
+
+**1. A project's `CLAUDE.md` replaces the references.** If the project already has one with
+architectural rules and a quality gate, **read it and stop**. It is the doctrine distilled
+for this codebase, by this skill, with the landmines this project actually hit. Load a
+reference only to go past what it says - and say which one and why.
+
+**2. Never pre-load.** Load a reference when you reach the step that needs it, not at the
+start. Most tasks never reach Step 7, and a prototype never needs `delivery-gates.md`.
+Loading the whole set up front costs the same on a typo fix as on a greenfield build.
+
+**3. Filter the registry; do not print it whole.** A stack entry is ~300 lines. Fetch it to
+a file, then read the fields the step needs:
+
+```bash
+curl -sS --max-time 20 -o /tmp/dm-stack.json "<raw_base_url>/<stack>.json"
+python3 -c "import json,sys; d=json.load(open('/tmp/dm-stack.json')); print(json.dumps({k: d[k] for k in ('architecture','key_decisions') if k in d}, indent=1, ensure_ascii=False))"
+```
+
+Paying tokens to iterate on a failing test is the work. Paying them to reload doctrine you
+already wrote into the project is waste.
+
 ## Read before acting
 
 Always load `references/behavioral-rules.md`. It is short and it governs every step below.
 
-Load the rest only when the step needs it:
+Load the rest only when the step needs it, and **only if the project's `CLAUDE.md` does not
+already answer the question**:
 
 | Step | File |
 |---|---|
@@ -61,6 +88,9 @@ Load the rest only when the step needs it:
 | 6 | `references/delivery-gates.md` - what happens when the code fails, gated by stage |
 | 4, 7 | `references/growth-signals.md` - architectural health thresholds and evidence |
 | every step | `references/mentoring-voice.md` - how a recommendation is structured |
+
+Do not load a row you have not reached. `delivery-gates.md` is the largest file in the set
+and applies only from `pre-release` onward - on a spike or a prototype it is pure cost.
 
 ## Workflow
 
