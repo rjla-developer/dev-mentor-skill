@@ -139,7 +139,8 @@
       "Goldens generated on one OS and validated on another differ through font rendering alone, so the suite goes red on a change that altered nothing visual.",
       "Anything with a timestamp, a randomised layout, a mid-frame animation or a network image is a bad golden candidate: it fails on its own schedule.",
       "Mocking a repository in a widget test hides the wiring the widget test existed to check - if everything below is mocked, the test asserts the mock.",
-      "A green suite with generated code out of date: build_runner output is committed, so stale *.g.dart passes tests and fails at runtime."
+      "A green suite with generated code out of date: build_runner output is committed, so stale *.g.dart passes tests and fails at runtime.",
+      "simctl io ... screenshot right after simctl boot fails with \"Device does not have a 'default' display port\". It is a race, not a limitation: the display exists a few seconds after boot returns. Wait and retry before concluding you cannot look. Several simulators run at once, and installing your app on one that already holds another app disturbs nothing - a busy simulator is not a reason to skip verification."
     ],
     "what_not_to_test": [
       "That setState rebuilt, or that a StatelessWidget is stateless - that tests the framework, not the product.",

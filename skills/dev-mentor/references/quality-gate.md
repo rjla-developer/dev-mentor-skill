@@ -69,42 +69,35 @@ document.
 
 ## If it has a screen, run it and look
 
-A green suite is not evidence the screen is right. Tests assert what you thought to
-assert; a rendered screen shows what you did not.
+A green suite is not evidence the screen is right: tests assert what you thought to assert;
+a rendered screen shows what you did not. **The gate is not complete until the app has been
+launched and a screen looked at.** Build succeeding is not running, and running is not
+looking.
 
-**For anything with a UI, the gate is not complete until the app has been launched and a
-screen has actually been looked at.** Build succeeding is not the same as running, and
-running is not the same as looking.
+What "looked at" means: launch on the real target, reach the screens the change touched,
+capture what you saw so the claim is evidence rather than memory, and check the states
+nobody meets on the happy path - empty, error, loading, and the longest string a real user
+would type.
 
-Observed, not assumed: a run without this rule shipped 68 passing tests, a clean analyzer
-and a compiling build - alongside an overlapping header caused by a theme value resolving
-to null in that framework version. No test in either suite would have caught it.
+**If you cannot launch it, that is the last step, not the first.** Before declaring a visual
+result unverified, take the cheapest route still open:
 
-What "looked at" means:
+- **Render the changed screens at real device widths in a throwaway test.** 320 and 360
+  logical pixels catch the overflow a default 800x600 test surface hides entirely.
+- Another device, another platform target, a web build. A device already running something
+  else is not occupied - it holds more than one app.
+- **Retry once before believing a tooling error.** Emulators report transient startup
+  states as hard failures. Check the stack's `traps` for the known ones.
+- Assert no overflow outright, rather than eyeballing.
 
-- launch on the real target - simulator, emulator or browser
-- reach the screens the change touched
-- capture what you saw, so the claim is evidence and not a memory
-- check the states that are easy to never see: empty, error, loading, and the longest
-  string a real user would enter
+Only then say it plainly - "I could not launch this, so the visual result is unverified" -
+and never let that read as though it passed.
 
-If the environment cannot run it, say so explicitly - "I could not launch this, so the
-visual result is unverified" - and never let that read as though it passed.
-
-**But saying so is the last step, not the first.** A blocked simulator ends the easiest
-route, not the obligation. Before declaring a visual result unverified, take the cheapest
-route that is still open:
-
-- **Render the changed screens at real device widths in a throwaway test** - 320 and 360
-  logical pixels catch the overflow that a default 800x600 test surface hides entirely.
-  Delete the file afterwards.
-- Try another device, another platform target, or a web build if the project has one.
-- Fail the layout on purpose: assert no overflow, rather than eyeballing.
-
-Observed: one run lost its simulator, declared the result unverified and stopped - honest,
-and it found nothing. Another never opened a simulator, rendered its changed widgets at 360
-and 320 pixels in a scratch test, and found two overflows - **one already shipped and
-missed by every green suite since.**
+Three observed runs set this. One shipped 68 passing tests, a clean analyzer and a
+compiling build alongside an overlapping header. One lost its simulator to a transient
+error, declared the result unverified and stopped - honest, and it found nothing. One never
+opened a simulator, rendered at 360 and 320 pixels, and found two overflows, **one already
+shipped and missed by every green suite since.**
 
 Honest is the floor. Resourceful is the job.
 
