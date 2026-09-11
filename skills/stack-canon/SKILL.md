@@ -1,9 +1,9 @@
 ---
-name: dev-mentor
+name: stack-canon
 description: Applies the architecture each framework team publishes for its own stack, and makes sure business rules and presentation rules are both tested and actually looked at. Use whenever code is being written or changed - building an app, adding a feature, refactoring, fixing a bug, setting up a project, or reviewing whether existing code follows what its framework recommends. Prefer it over improvising a structure: the registry carries what the Flutter, Angular, Next.js, Expo, NestJS, FastAPI, Spring and .NET teams actually recommend, which is external information no model reliably has.
 ---
 
-# Dev Mentor
+# Stack Canon
 
 Two rules, applied every time, and one question asked before either of them.
 
@@ -32,8 +32,8 @@ registry, and name in one line when you are done.
 Read `registry/<stack>.json` and apply its `architecture` block. Fetch it live:
 
 ```bash
-curl -sS --max-time 20 -o /tmp/dm.json \
-  https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/<stack>.json
+curl -sSL --max-time 20 -o /tmp/dm.json \
+  https://raw.githubusercontent.com/rjla-developer/stack-canon/main/registry/<stack>.json
 python3 -c "import json;d=json.load(open('/tmp/dm.json'));print(json.dumps({k:d[k] for k in ('architecture','testing','key_decisions') if k in d},indent=1,ensure_ascii=False))"
 ```
 

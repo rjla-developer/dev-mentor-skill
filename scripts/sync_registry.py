@@ -38,7 +38,7 @@ REGISTRY_DIR = os.path.join(REPO_ROOT, "registry")
 REPORT_PATH = os.path.join(REPO_ROOT, "docs", "registry-sync-report.md")
 
 TIMEOUT_SECONDS = 20
-USER_AGENT = "dev-mentor-skill registry sync (+https://github.com/rjla-developer/dev-mentor-skill)"
+USER_AGENT = "stack-canon registry sync (+https://github.com/rjla-developer/stack-canon)"
 NON_STACK_FILES = {"schema.json", "index.json"}
 
 

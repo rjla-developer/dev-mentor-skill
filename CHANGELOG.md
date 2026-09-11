@@ -97,5 +97,5 @@ believing a tooling error.
 
 ## 0.1.0
 
-Initial release: dev-mentor orchestrator, mentor-review, mentor-clean, an eight-stack
+Initial release: stack-canon orchestrator, mentor-review, mentor-clean, an eight-stack
 registry, the 150-line `CLAUDE.md` hook, and four eval scenarios.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/schema.json",
-  "title": "dev-mentor stack registry entry",
+  "$id": "https://raw.githubusercontent.com/rjla-developer/stack-canon/main/registry/schema.json",
+  "title": "stack-canon stack registry entry",
   "description": "One file per stack. Describes how to detect the stack, which official agent skills exist for it, what those skills do not cover, and the mentor's stack-specific thresholds.",
   "type": "object",
   "additionalProperties": false,

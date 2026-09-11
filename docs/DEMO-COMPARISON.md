@@ -1,18 +1,21 @@
 # Demo comparison log
 
 A controlled A/B of the same build task, run twice: once with the developer's normal
-setup, once with that setup plus `dev-mentor`. This file is the running record - what was
+setup, once with that setup plus `stack-canon`. This file is the running record - what was
 held constant, what was observed, and which claims the evidence actually supports.
 
 It is written to be falsifiable. Anything that turned out differently from what we
 expected is recorded as such, including our own wrong predictions.
+
+
+> **Nota de nombre.** Los experimentos de este registro se corrieron cuando la skill se llamaba `dev-mentor`. El nombre cambió a `stack-canon` en 1.0.0, al recortar el alcance a los dos pilares que la evidencia sostiene. Los transcripts originales dicen `dev-mentor`; es la misma herramienta.
 
 ## Contents
 
 - [Environment](#environment)
 - [The task](#the-task)
 - [Run A - baseline](#run-a---baseline)
-- [Run B - with dev-mentor](#run-b---with-dev-mentor)
+- [Run B - with stack-canon](#run-b---with-stack-canon)
 - [Observed differences](#observed-differences)
 - [Predictions that failed](#predictions-that-failed)
 - [Claims we can and cannot make](#claims-we-can-and-cannot-make)
@@ -32,8 +35,8 @@ Held identical across both runs unless noted.
 | Network | Available |
 | API keys | None provided - tests had to run without network or credentials |
 
-**The only intended difference:** run B additionally has `dev-mentor` installed from
-`rjla-developer/dev-mentor-skill` via the plugin marketplace.
+**The only intended difference:** run B additionally has `stack-canon` installed from
+`rjla-developer/stack-canon` via the plugin marketplace.
 
 This is deliberately **not** a clean-room comparison against a bare Claude. It answers the
 question a reader actually has: *"I already have my skills - does this add anything?"* A
@@ -77,17 +80,17 @@ Artifacts: `src/`, `test/`, `models/en-US.json`, `models/es-ES.json`, `README.md
 `.env.example`, `tsconfig.json`, `tsconfig.test.json`, `package.json`.
 **No `CLAUDE.md`.**
 
-**This is a strong baseline.** Any claim that dev-mentor "produces better code" is not
+**This is a strong baseline.** Any claim that stack-canon "produces better code" is not
 supported by this run and should not be made.
 
-## Run B - with dev-mentor
+## Run B - with stack-canon
 
 Directory: `english-mentor-with-skill`. Claude Code 2.1.251. Completed.
 
 1. Read its own plugin files - `behavioral-rules.md`, `orchestration.md`,
    `mentoring-voice.md`, `quality-gate.md`, `growth-signals.md`, `CLAUDE.md.template`.
 2. **Fetched the live remote registry.** `curl` to
-   `raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/index.json`,
+   `raw.githubusercontent.com/rjla-developer/stack-canon/main/registry/index.json`,
    returning `synced_at: 2026-08-28`. First production exercise of the three-layer
    resolution described in `docs/REGISTRY.md`.
 3. Opened with the understanding contract before writing anything: **Entendido**;
@@ -176,7 +179,7 @@ The single most concrete artifact difference is `CLAUDE.md`. Run A's next sessio
 cold - it will re-derive the build commands, the layer boundaries, and the three judgment
 calls it already made. Run B's next session reads them.
 
-## Run C - dev-mentor after the operability work
+## Run C - stack-canon after the operability work
 
 Same prompt, same directory pattern, Claude Code 2.1.251, stage answered `prototype`.
 29 tests in 4 files, 498 lines. Typecheck and build clean.
@@ -251,7 +254,7 @@ effort toward the checkable. Recorded here rather than fixed reflexively - addin
 gate for "is it good" would be a checklist item standing in for judgment, which is the
 failure this project keeps warning about.
 
-### A finding against dev-mentor itself
+### A finding against stack-canon itself
 
 `src/domain/progress.ts` in run C carries this comment:
 
@@ -285,7 +288,7 @@ own catalogue because this app has two routes and no backend, so the routing and
 serialisation those skills cover barely exist here. Declining also keeps attribution clean:
 run B had no capability run A lacked.
 
-### Where dev-mentor was better
+### Where stack-canon was better
 
 | | Run A | Run B |
 |---|---|---|
@@ -307,7 +310,7 @@ clever:
   *cancelling* does not imply a cutoff on *joining*. Run B decided it, tested it
   explicitly, and documented it.
 
-### Where dev-mentor was worse
+### Where stack-canon was worse
 
 **Run A launched the app. Run B did not.**
 
@@ -335,7 +338,7 @@ repository rather than trusting the disabled button. Both had a clean analyzer a
 
 ### Honest summary
 
-Structure, test depth, recorded memory and reported restraint went to dev-mentor, and the
+Structure, test depth, recorded memory and reported restraint went to stack-canon, and the
 architecture difference is the framework team's own doctrine against a layout that team
 advises against. Empirical verification went to the baseline, and it was not close: one run
 looked at the product and the other did not.
@@ -407,9 +410,9 @@ This is the finding. Not a snapshot - a trend.
 | | Start | After cancellation | After waitlist |
 |---|---|---|---|
 | Duplicated blocks, no skill | 8 | 17 | **18** |
-| Duplicated blocks, dev-mentor | 6 | 6 | **5** |
+| Duplicated blocks, stack-canon | 6 | 6 | **5** |
 | Longest `build()`, no skill | 111 | 140 | **166** |
-| Longest `build()`, dev-mentor | 91 | 103 | **99** |
+| Longest `build()`, stack-canon | 91 | 103 | **99** |
 
 The registry threshold for splitting a widget is 100. One codebase crossed it and kept
 going, ending 66% past the line. The other crossed it once and **came back under** - not by
@@ -424,18 +427,18 @@ other is flat or improving.
 
 Written before looking: *the no-skill side will touch double the files.*
 
-**False, and backwards.** No skill touched 10 files (+840/-65); dev-mentor touched 16
+**False, and backwards.** No skill touched 10 files (+840/-65); stack-canon touched 16
 (+1045/-140).
 
 The breakdown dissolves it: in production code they are 7 against 8, effectively equal. The
-entire difference is test files - **3 monolithic against 8 split by layer.** dev-mentor does
+entire difference is test files - **3 monolithic against 8 split by layer.** stack-canon does
 not touch more code; its tests live apart.
 
 ### Where the baseline won, again
 
 Neither run opened a simulator. They differed in what they did about it.
 
-dev-mentor tried, hit a broken display port with the other simulator occupied, and
+stack-canon tried, hit a broken display port with the other simulator occupied, and
 **declared the visual result unverified**. Honest, correct by the rule as written - and it
 found nothing.
 
@@ -449,7 +452,7 @@ same commit - a blocked simulator ends the easiest route, not the obligation.
 
 ### Discipline worth recording
 
-dev-mentor noticed `dart format` had touched three files it never modified, and reverted
+stack-canon noticed `dart format` had touched three files it never modified, and reverted
 them to keep the diff free of noise. That is the surgical-changes rule visible in an
 artifact rather than asserted in prose.
 
@@ -478,16 +481,16 @@ of those.
 
 **Supported by the evidence:**
 
-- dev-mentor states its assumptions before the work rather than after.
-- dev-mentor consults a live external catalog, and says so, with a date.
-- dev-mentor reports when a stack is absent from that catalog instead of staying quiet.
-- dev-mentor surfaced one decision (persistence) that the baseline made alone.
-- dev-mentor produced a `CLAUDE.md`; the baseline produced none. Run B's next session
+- stack-canon states its assumptions before the work rather than after.
+- stack-canon consults a live external catalog, and says so, with a date.
+- stack-canon reports when a stack is absent from that catalog instead of staying quiet.
+- stack-canon surfaced one decision (persistence) that the baseline made alone.
+- stack-canon produced a `CLAUDE.md`; the baseline produced none. Run B's next session
   starts warm; run A's starts cold.
-- dev-mentor reported its quality gate explicitly, as commands and results.
-- dev-mentor structured its finding with `file:line` evidence and a stated cost, and
+- stack-canon reported its quality gate explicitly, as commands and results.
+- stack-canon structured its finding with `file:line` evidence and a stated cost, and
   reported growth signals as a negative result rather than inventing one.
-- dev-mentor declared what it had not measured.
+- stack-canon declared what it had not measured.
 
 **Not supported - do not claim:**
 
@@ -522,7 +525,7 @@ Publish these alongside any result.
   comparison holds - but it means both runs were also being tested on how they handle a
   malformed requirement, which was not the original intent.
 - **The plugin reported a partial load failure.** `/plugin install` printed
-  *"Installed dev-mentor. The plugin couldn't be loaded - see /plugin for details."* The
+  *"Installed stack-canon. The plugin couldn't be loaded - see /plugin for details."* The
   skill itself loaded and ran, but the `PostToolUse` hook did not fire automatically - the
   transcript shows `validate_claude_md.py` being invoked by hand instead. The 150-line cap
   was therefore **not** enforced by the hook during this run. Cause not yet diagnosed.

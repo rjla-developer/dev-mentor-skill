@@ -1,7 +1,7 @@
 {
   "registry_version": 1,
   "synced_at": "2026-08-28",
-  "raw_base_url": "https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/",
+  "raw_base_url": "https://raw.githubusercontent.com/rjla-developer/stack-canon/main/registry/",
   "stacks": [
     {
       "stack": "flutter",

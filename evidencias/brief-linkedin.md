@@ -6,11 +6,11 @@ como no medido, y eso no se quita al publicar.**
 
 ## 1. Qué es
 
-`dev-mentor` es un plugin de Claude Code. No genera código: **decide cómo se va a
+`stack-canon` es un plugin de Claude Code. No genera código: **decide cómo se va a
 construir antes de que se escriba**, aplicando la doctrina publicada por el equipo que
 mantiene cada framework.
 
-Repositorio: https://github.com/rjla-developer/dev-mentor-skill · MIT · versión 0.2.0
+Repositorio: https://github.com/rjla-developer/stack-canon · MIT · versión 0.2.0
 
 ## 2. El problema que ataca
 
@@ -54,7 +54,7 @@ skills personales activas. Mide valor marginal sobre un montaje ya bueno.
 
 ### Experimento 1 — Skill de Alexa (tutor de inglés)
 
-**dev-mentor perdió en lo más importante.** No lanzó la app; la baseline sí, y encontró
+**stack-canon perdió en lo más importante.** No lanzó la app; la baseline sí, y encontró
 un defecto visual. Ganó en estructura y memoria, pero perdió en verificación empírica.
 
 Ese fallo produjo una regla nueva. Es el experimento más valioso de los tres.
@@ -137,7 +137,7 @@ nunca se inventa.** La CI rechaza lo contrario.
 | Documento visual con las métricas | https://claude.ai/code/artifact/07e670fe-40ec-4245-9dee-4d3be59e00da |
 | Capturas de las tres corridas | `evidencias/capturas/` (ver `MANIFIESTO.md`) |
 | Registro técnico completo | `docs/DEMO-COMPARISON.md` |
-| Repositorio | https://github.com/rjla-developer/dev-mentor-skill |
+| Repositorio | https://github.com/rjla-developer/stack-canon |
 | Video de pantalla de las corridas | lo aporta el autor |
 
 ## 10. Ángulos sugeridos, uno por día

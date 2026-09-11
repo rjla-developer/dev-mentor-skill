@@ -1,4 +1,4 @@
-# dev-mentor-skill
+# stack-canon
 
 A Claude Code plugin that does two things and refuses to do more: it applies the
 architecture **each framework team publishes for its own stack**, and it makes sure
@@ -11,8 +11,8 @@ was cut. The experiments — including the ones this project lost — are in
 ## Install
 
 ```bash
-/plugin marketplace add rjla-developer/dev-mentor-skill
-/plugin install dev-mentor@dev-mentor-marketplace
+/plugin marketplace add rjla-developer/stack-canon
+/plugin install stack-canon@stack-canon-marketplace
 ```
 
 Then just work. It triggers on anything that writes or changes code.

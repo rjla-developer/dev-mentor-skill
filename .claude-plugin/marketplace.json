@@ -1,16 +1,16 @@
 {
-  "name": "dev-mentor-marketplace",
+  "name": "stack-canon-marketplace",
   "owner": {
     "name": "rjla-developer",
     "url": "https://github.com/rjla-developer"
   },
   "metadata": {
-    "description": "Marketplace hosting the dev-mentor plugin.",
+    "description": "Marketplace hosting the stack-canon plugin.",
     "version": "1.0.0"
   },
   "plugins": [
     {
-      "name": "dev-mentor",
+      "name": "stack-canon",
       "source": "./",
       "description": "Orchestrator and technical mentor: finds the right official skills for your stack, names what they do not cover, and explains the reasoning behind every recommendation."
     }

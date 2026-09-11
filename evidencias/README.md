@@ -1,7 +1,10 @@
 # Evidencias
 
-Bitácora de las pruebas hechas sobre `dev-mentor`. Todo lo que aquí se afirma tiene
+Bitácora de las pruebas hechas sobre `stack-canon`. Todo lo que aquí se afirma tiene
 una medición o un transcript detrás, y lo que no se midió está marcado como no medido.
+
+
+> **Nota de nombre.** Los experimentos de este registro se corrieron cuando la skill se llamaba `dev-mentor`. El nombre cambió a `stack-canon` en 1.0.0, al recortar el alcance a los dos pilares que la evidencia sostiene. Los transcripts originales dicen `dev-mentor`; es la misma herramienta.
 
 ## Qué hay
 

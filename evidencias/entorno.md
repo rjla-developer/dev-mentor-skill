@@ -6,7 +6,7 @@ Sin esto, ningún número de la bitácora significa lo que parece.
 
 **La baseline no es Claude a secas.** Las dos corridas de cada experimento se ejecutan
 con **57 skills personales activas** más el plugin `swift-lsp`. La única diferencia entre
-los lados es `dev-mentor`.
+los lados es `stack-canon`.
 
 Esto mide **valor marginal sobre un montaje ya bueno**, que es la pregunta que un lector
 técnico tiene de verdad: *"ya tengo mis skills, ¿esto me suma algo?"*. Una comparación
@@ -29,9 +29,9 @@ favorecida artificialmente.
 
 **Plugin:** `swift-lsp@claude-plugins-official`
 
-Varias de esas se solapan con lo que hace `dev-mentor` — `review`, `health`, `qa`,
+Varias de esas se solapan con lo que hace `stack-canon` — `review`, `health`, `qa`,
 `plan-eng-review`, `design-review`, `document-generate`. Eso **endurece** la prueba: el
-lado sin dev-mentor no está desarmado, tiene herramientas para casi todo lo que dev-mentor
+lado sin stack-canon no está desarmado, tiene herramientas para casi todo lo que stack-canon
 promete.
 
 ## Constantes en ambos lados
