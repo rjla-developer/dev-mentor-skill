@@ -175,7 +175,7 @@
   "architecture": {
     "recommended_by": "framework-team",
     "source_url": "https://nextjs.org/docs/app/getting-started/project-structure",
-    "pattern": "none - the Next.js team is explicitly unopinionated about organisation",
+    "pattern": "file-system routing with server components by default - heavily prescribed; what is left open is only where non-route code lives",
     "folder_strategy": "unspecified",
     "layers": [
       {
@@ -226,7 +226,7 @@
       "Every server action and route handler states its authorization decision explicitly, including 'public on purpose'. An unguarded handler looks exactly like an intentionally public one."
     ],
     "component_library": "Promote to shared at >=3 occurrences across >=2 routes or features. Below that, colocate in the segment that uses it - the framework makes colocation safe precisely so you do not have to decide early.",
-    "notes": "The docs name three organisation strategies and decline to recommend one: 'choose a strategy that works for you and your team and be consistent across the project.' The mentor's job here is not to pick for the user - it is to make sure a choice is made, written down, and followed."
+    "notes": "Next.js prescribes more structure than most frameworks, but through conventions rather than a document called an architecture guide: the folder IS the URL, reserved filenames (layout/page/loading/error/not-found/route/template) render in a fixed nesting order, a route is not public until page or route exists, _folder leaves routing and (folder) groups without changing the URL, and everything is a Server Component until 'use client'. The ONE thing left open is where non-route code goes: the docs name three strategies and decline to pick, saying 'choose a strategy that works for you and your team and be consistent across the project'. So the mentor's job here is not to impose a structure - it is to make sure one is chosen, written down and followed. The failure mode is not the wrong layout, it is an inconsistent one."
   },
   "key_decisions": [
     {
