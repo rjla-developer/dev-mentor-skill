@@ -391,6 +391,68 @@ Fixed: naming a stack is now explicitly not a trigger. `technical` requires the 
 to be consulted, arguing architecture, correcting a choice, or setting `mentor_mode` in
 `CLAUDE.md`.
 
+## Fourth experiment - a feature designed to break bad layering
+
+The cancellation feature was an added flag. This one was chosen to hurt: a waitlist, which
+crosses every layer, forces a migration of already-persisted data, creates an invariant
+that can be violated from two places, and carves an exception into an existing boundary
+rule (the two-hour window guards a confirmed place, not a queue).
+
+Both projects were put under git first, so the diff is real.
+
+### Structural decay across three measurements
+
+This is the finding. Not a snapshot - a trend.
+
+| | Start | After cancellation | After waitlist |
+|---|---|---|---|
+| Duplicated blocks, no skill | 8 | 17 | **18** |
+| Duplicated blocks, dev-mentor | 6 | 6 | **5** |
+| Longest `build()`, no skill | 111 | 140 | **166** |
+| Longest `build()`, dev-mentor | 91 | 103 | **99** |
+
+The registry threshold for splitting a widget is 100. One codebase crossed it and kept
+going, ending 66% past the line. The other crossed it once and **came back under** - not by
+splitting a widget, but because moving SnackBar wording into the view model pulled code out
+of the screen. **Its duplication went down during a feature addition**, which only happens
+when accommodating the new thing forces cleaning the old.
+
+Three measurement points is no longer an anecdote. One codebase degrades monotonically; the
+other is flat or improving.
+
+### A prediction that failed
+
+Written before looking: *the no-skill side will touch double the files.*
+
+**False, and backwards.** No skill touched 10 files (+840/-65); dev-mentor touched 16
+(+1045/-140).
+
+The breakdown dissolves it: in production code they are 7 against 8, effectively equal. The
+entire difference is test files - **3 monolithic against 8 split by layer.** dev-mentor does
+not touch more code; its tests live apart.
+
+### Where the baseline won, again
+
+Neither run opened a simulator. They differed in what they did about it.
+
+dev-mentor tried, hit a broken display port with the other simulator occupied, and
+**declared the visual result unverified**. Honest, correct by the rule as written - and it
+found nothing.
+
+The baseline never opened a simulator either. It rendered its changed widgets at **360 and
+320 logical pixels in a throwaway test**, and found two real overflows - one of them
+**already shipped in an earlier version and missed by every green suite since**.
+
+Second time the baseline wins on visual verification, and this time the lesson is different:
+the rule said "run the app" and said nothing about what to do when you cannot. Fixed in the
+same commit - a blocked simulator ends the easiest route, not the obligation.
+
+### Discipline worth recording
+
+dev-mentor noticed `dart format` had touched three files it never modified, and reverted
+them to keep the diff free of noise. That is the surgical-changes rule visible in an
+artifact rather than asserted in prose.
+
 ## Predictions that failed
 
 Recorded because a project whose premise is evidence over opinion has to publish the

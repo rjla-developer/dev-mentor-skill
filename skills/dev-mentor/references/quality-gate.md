@@ -76,12 +76,9 @@ assert; a rendered screen shows what you did not.
 screen has actually been looked at.** Build succeeding is not the same as running, and
 running is not the same as looking.
 
-This exists because of an observed failure, not a preference. In a controlled comparison,
-the run *without* this rule wrote 68 passing tests, a clean analyzer and a compiling
-build - and shipped a screen with an overlapping header, caused by a theme value resolving
-to null in that framework version. The run that launched the app found it in one
-screenshot, diagnosed it and fixed it. No unit or widget test in either suite would ever
-have caught it.
+Observed, not assumed: a run without this rule shipped 68 passing tests, a clean analyzer
+and a compiling build - alongside an overlapping header caused by a theme value resolving
+to null in that framework version. No test in either suite would have caught it.
 
 What "looked at" means:
 
@@ -93,6 +90,23 @@ What "looked at" means:
 
 If the environment cannot run it, say so explicitly - "I could not launch this, so the
 visual result is unverified" - and never let that read as though it passed.
+
+**But saying so is the last step, not the first.** A blocked simulator ends the easiest
+route, not the obligation. Before declaring a visual result unverified, take the cheapest
+route that is still open:
+
+- **Render the changed screens at real device widths in a throwaway test** - 320 and 360
+  logical pixels catch the overflow that a default 800x600 test surface hides entirely.
+  Delete the file afterwards.
+- Try another device, another platform target, or a web build if the project has one.
+- Fail the layout on purpose: assert no overflow, rather than eyeballing.
+
+Observed: one run lost its simulator, declared the result unverified and stopped - honest,
+and it found nothing. Another never opened a simulator, rendered its changed widgets at 360
+and 320 pixels in a scratch test, and found two overflows - **one already shipped and
+missed by every green suite since.**
+
+Honest is the floor. Resourceful is the job.
 
 ## What makes a test worth having
 

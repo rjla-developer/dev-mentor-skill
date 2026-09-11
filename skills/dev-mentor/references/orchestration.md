@@ -158,11 +158,7 @@ command sends the user to a 404; a wrong architecture claim sends them to a rewr
 
 ## Failure messages
 
-Be specific about which layer failed, because the user's next action differs:
-
-| Situation | Say |
-|---|---|
-| Fetch failed | "Could not reach the remote registry; using the bundled copy from `<synced_at>`." |
-| Stack missing | "`<stack>` is not in the catalog. Here is what I found by searching, and here is how to add it." |
-| Entry unverified | "The catalog lists `<id>` but flags the install command as unverified. Check it before running." |
-| No skills at all | "No official skills found for `<stack>`. I will work from the codebase and its documentation, applying the mentor's own doctrine." |
+Name which layer failed, because the user's next action differs: a fetch that failed means
+saying which date the bundled catalog carries; a stack that is absent means saying so and
+offering the issue; an entry flagged unverified means repeating that caveat before the
+command. Never let any of the three read as a clean result.
