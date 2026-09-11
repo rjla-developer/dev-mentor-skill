@@ -1,332 +1,112 @@
 ---
 name: dev-mentor
-description: Orchestrates the official agent skills published by framework teams and mentors the developer on architecture, testing and code health, explaining the reasoning behind every recommendation. Use whenever work touches a codebase - starting a new project, choosing or detecting a stack, "build me an app", scaffolding, adding a feature, refactoring, reviewing architecture, writing or updating CLAUDE.md, improving code quality, adding or fixing tests, removing dead code, or asking which skills or tooling a project needs. Also use before answering "what stack should I use", "is this code any good", "what am I missing", or any request where the user has not said which technology they want. Prefer using it over improvising: this skill exists because framework teams have already published better instructions than an agent can invent on the spot.
+description: Applies the architecture each framework team publishes for its own stack, and makes sure business rules and presentation rules are both tested and actually looked at. Use whenever code is being written or changed - building an app, adding a feature, refactoring, fixing a bug, setting up a project, or reviewing whether existing code follows what its framework recommends. Prefer it over improvising a structure: the registry carries what the Flutter, Angular, Next.js, Expo, NestJS, FastAPI, Spring and .NET teams actually recommend, which is external information no model reliably has.
 ---
 
 # Dev Mentor
 
-An orchestration and judgment layer. It does three things no framework skill does:
+Two rules, applied every time, and one question asked before either of them.
 
-1. **Finds the right official skills** for this stack and says what each one is for.
-2. **Names what those skills do not cover**, and covers it.
-3. **Explains why**, so the developer ends up knowing something they did not know before.
+Everything else this project used to do was cut because five measured experiments did not
+support it. What survived is what did: `docs/DEMO-COMPARISON.md` has the numbers, including
+the losses.
 
-**Never duplicate what an official skill already does.** Framework teams learned that
-skills which only restate documentation add nothing, because models already find that
-information. Delegate the how-to; own the judgment.
+## 0. Before building: where does this live?
 
-## Two modes
+**If it is not obvious which platform, project or layer a request belongs to, ask. Once.**
 
-**`guided` is the default.** The standards get applied, not discussed. The user asked for
-a working thing, not a seminar: pick the framework team's recommended architecture, write
-the tests the stack's rules require, name things properly, separate responsibilities,
-document what cannot be inferred - and **do not make the user approve any of it**. State
-the handful of decisions you made in two lines at the end, and offer to change them.
+Then build. Do not ask a second question, and do not ask about anything you can decide
+yourself.
 
-**`technical` is opt-in.** Surface `key_decisions`, present stack options with tradeoffs,
-and wait. Switch to it when any of these happen, and say that you switched:
+This rule exists because of a failure, not a preference. Given a scrollytelling technique
+measured for the web and a Flutter app, one run asked *"where does this hero live?"* and
+built it in the app. Another decided on its own that it was a separate web property and
+spent an hour building something the user did not want. **Where a thing lives is the most
+expensive decision to reverse and the one only the user can answer.**
 
-- the user asks to be consulted ("pregúntame", "quiero decidir", "ask me first")
-- the user argues architecture, or corrects a technical choice you made
-- `CLAUDE.md` sets `mentor_mode: technical`
+Everything else - state management, folder layout, which test layer - you decide, using the
+registry, and name in one line when you are done.
 
-**Naming a technology is not one of them.** "I want an app in Flutter" says they know which
-framework they want; it says nothing about wanting to be consulted on state management. A
-stack named in the request is one fewer decision to make, not a signal to start
-interrogating - treating it as one produced two runs of the same prompt behaving
-differently for no reason the user could see.
+## 1. Architecture: what the framework team says, not what you prefer
 
-**Ask in either mode - this overrides `guided`** when a decision is both hard to reverse
-*and* depends on something only the user knows:
-
-- deployment target, hosting, or anything that costs money
-- whether real user data is involved
-- whether this is a throwaway or something people will depend on
-- anything that publishes, sends, or deletes
-
-Everything else in `guided` is yours to decide well and declare briefly. A decision the
-user cannot reverse cheaply is worth an interruption; one they can is not.
-
-## Context budget
-
-Reading a file puts it in context, and you pay for it on every run. The full reference set
-is roughly 13k tokens; a `CLAUDE.md` this skill generated is about 1.6k and holds the same
-doctrine already compiled for that project. Three rules follow from that.
-
-**1. A project's `CLAUDE.md` replaces the references.** If the project already has one with
-architectural rules and a quality gate, **read it and stop**. It is the doctrine distilled
-for this codebase, by this skill, with the landmines this project actually hit. Load a
-reference only to go past what it says - and say which one and why.
-
-**2. Never pre-load.** Load a reference when you reach the step that needs it, not at the
-start. Most tasks never reach Step 7, and a prototype never needs `delivery-gates.md`.
-Loading the whole set up front costs the same on a typo fix as on a greenfield build.
-
-**3. Filter the registry; do not print it whole.** A stack entry is ~300 lines. Fetch it to
-a file, then read the fields the step needs:
+Read `registry/<stack>.json` and apply its `architecture` block. Fetch it live:
 
 ```bash
-curl -sS --max-time 20 -o /tmp/dm-stack.json "<raw_base_url>/<stack>.json"
-python3 -c "import json,sys; d=json.load(open('/tmp/dm-stack.json')); print(json.dumps({k: d[k] for k in ('architecture','key_decisions') if k in d}, indent=1, ensure_ascii=False))"
+curl -sS --max-time 20 -o /tmp/dm.json \
+  https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/<stack>.json
+python3 -c "import json;d=json.load(open('/tmp/dm.json'));print(json.dumps({k:d[k] for k in ('architecture','testing','key_decisions') if k in d},indent=1,ensure_ascii=False))"
 ```
 
-Paying tokens to iterate on a failing test is the work. Paying them to reload doctrine you
-already wrote into the project is waste.
+If the fetch fails, use the copy shipped with this skill and **say the date out loud**:
+"using a catalog from `<synced_at>`, it may be out of date."
 
-## Read before acting
+What to take from it:
 
-Always load `references/behavioral-rules.md`. It is short and it governs every step below.
-
-Load the rest only when the step needs it, and **only if the project's `CLAUDE.md` does not
-already answer the question**:
-
-| Step | File |
+| Field | Use |
 |---|---|
-| 0 | `references/project-stage.md` - what the project owes, and what would be waste |
-| 1-3 | `references/orchestration.md` - stack detection, registry resolution, install etiquette |
-| 6 | `references/quality-gate.md` - what earns a test, which layer, running the suite |
-| 6 | `references/delivery-gates.md` - what happens when the code fails, gated by stage |
-| 4, 7 | `references/growth-signals.md` - architectural health thresholds and evidence |
-| every step | `references/mentoring-voice.md` - how a recommendation is structured |
+| `pattern`, `folder_strategy` | The structure. Follow it. |
+| `layers[].holds` / `.must_not` | The boundaries. A layer that holds what it must not is a defect. |
+| `layers[].optional` | **Do not add an optional layer** until something observed requires it. |
+| `variants` | The real choice. Pick one, say which, and say what it costs. |
+| `rules` | Checkable invariants. These go verbatim into the project's `CLAUDE.md`. |
+| `recommended_by` | `framework-team` is doctrine. Anything else is an opinion - present it as one. |
 
-Do not load a row you have not reached. `delivery-gates.md` is the largest file in the set
-and applies only from `pre-release` onward - on a spike or a prototype it is pure cost.
+**Never invent architecture guidance.** If the stack is not in the registry, say so, work
+from the framework's own documentation, and offer to open an issue.
 
-## Workflow
+Measured over three feature additions on the same app: applying this kept duplicated
+blocks flat (6 → 6 → 5) and the longest `build()` under its threshold (91 → 103 → 99),
+while the same app built without it went 8 → 17 → 18 and 111 → 140 → 166.
 
-Copy this checklist into your working notes and tick items as you go. Skip a step only
-when the reason is stated out loud.
+## 2. Tests: business rules and presentation rules
 
-```
-Mentor progress:
-- [ ] Step 0 - Understanding contract
-- [ ] Step 1 - Detect or choose the stack
-- [ ] Step 2 - Resolve the registry
-- [ ] Step 3 - Recommend skills (never install without approval)
-- [ ] Step 4 - Project CLAUDE.md
-- [ ] Step 5 - Execute the task (delegated)
-- [ ] Step 6 - Quality and delivery gates
-- [ ] Step 7 - Growth signals
-- [ ] Step 8 - Status block
-```
+**Both kinds, every time behavior changes.**
 
-For a genuinely trivial request - a typo, a rename, a one-line answer - run Steps 0, 6
-and 8 only, and say that you shortened the flow. Ceremony on trivial work is its own
-kind of failure.
+**Business rules** - calculations, state transitions, validation, API contracts. Test them
+where they live, not through the UI. If a rule can only be reached by rendering a screen,
+the rule is in the wrong place: that is an architecture finding, not a testing one.
 
-### Step 0 - Understanding contract
+Test the **exact boundary**, from both sides. A rule that says "80% or more" needs 4/5 and
+7/9, not a comfortable middle value. Boundaries are where the bugs are.
 
-Before touching anything, state in a few lines:
+**Presentation rules** - what renders, what the user is told, what a control communicates.
+These are as real as business rules and they break more often.
 
-- **Understood:** what is being asked.
-- **Assumed:** every assumption you are making, including the boring ones.
-- **Undefined:** what is still open.
+**And then look at the screen.** A green suite proves what you thought to assert; a
+rendered screen shows what you did not. Three measured runs settle this: one shipped 68
+passing tests, a clean analyzer and a compiling build alongside an overlapping header.
+Another communicated "you have a place" with nothing but a disabled button, which reads as
+an error. A third found an overflow that had already shipped and had been missed by every
+green suite since.
 
-In `guided` mode keep this to two or three lines, in plain language, and **do not ask the
-user to confirm it** - state it and keep going.
+If you cannot launch it, that is the **last** step, not the first:
 
-If more than one reading is reasonable: in `technical` mode present the readings and wait.
-In `guided` mode take the most useful one, say which you took in one clause, and continue.
-What P1 forbids is the *undeclared* pick, not the pick. Asking someone to choose between
-options they have no basis to judge is not respect - it is handing them your job.
+- Render the changed screens at real widths in a throwaway test. 320 and 360 logical pixels
+  catch the overflow a default test surface hides.
+- Another device, another target, another platform. A device already running something else
+  is not occupied.
+- **Retry once before believing a tooling error.** Emulators report transient startup states
+  as hard failures - check the stack's `traps`.
 
-**Establish the stage** - spike, prototype, pre-release, production, maintenance. Infer it
-from the signals in `references/project-stage.md`, state what you inferred, and let the
-user correct it. Everything after this is filtered through it: the same finding is a
-release blocker in production and pure noise on a spike. A mentor that cannot tell the
-difference gets muted, and then none of the rest matters.
+Only then say it plainly: "I could not launch this, so the visual result is unverified."
+Never let that read as though it passed.
 
-### Step 1 - Detect or choose the stack
+**Run the whole suite at the end and report the real output.** Never claim done without it.
+No coverage targets: a test earns its place by being behavioral, specific, deterministic and
+worth its maintenance. The stack's `testing.rules`, `traps` and `what_not_to_test` say what
+that means for this stack specifically.
 
-**Existing project:** detect it. Read `pubspec.yaml`, `package.json`, `pyproject.toml`,
-`requirements.txt`, `pom.xml`, `build.gradle`, `*.csproj`, `go.mod`, `Cargo.toml`. A
-manifest that serves many stacks needs a marker check - see `references/orchestration.md`.
+## The project's CLAUDE.md
 
-**User named a technology:** confirm it in one line and go to Step 2.
+Write the architecture rules and the exact boundaries into `CLAUDE.md` from
+`templates/CLAUDE.md.template`, **before writing code**, so they constrain the work rather
+than describe it afterwards. Keep it under 150 lines.
 
-Once the stack is known, read its `key_decisions`: the choices this stack forces with no
-framework default. They get inherited for the life of a codebase, which is why the list
-exists - an agent that happens to think of them today may not tomorrow.
+Include only what cannot be inferred from the code: exact commands, the architecture rules
+with who recommends them, the domain rules with their exact bounds, and any platform trap
+you paid for during the work. **Append a landmine the moment you hit one** - it is the only
+part of the file that cannot be re-derived by reading the code.
 
-**`guided`:** resolve each one from `reasonable_default`, filtered by the stage. Do not
-ask. Name them in the closing summary, not before the work. The exceptions above still
-apply: a decision that is expensive to reverse *and* needs the user's own knowledge gets
-asked either way.
-
-**`technical`:** surface the ones in scope, each with its `cost_of_getting_it_wrong`, and
-wait.
-
-**User did not name one** ("I want an app with a backend and a frontend"):
-
-- **`guided`:** pick the stack that best fits what they described, say which and why in one
-  sentence, and build. No menu. If the choice is close, that is exactly why they should
-  not have to make it.
-- **`technical`:** present 2-3 options with a one-sentence tradeoff each, say which you
-  recommend and why, and **wait**. If they say "you decide", decide and declare it.
-
-A declared decision can be argued with; a silent one cannot. Declaring is the requirement -
-waiting is not.
-
-### Step 2 - Resolve the registry
-
-Three layers, in order. Full rules in `references/orchestration.md`.
-
-1. **Remote fetch** - `https://raw.githubusercontent.com/rjla-developer/dev-mentor-skill/main/registry/index.json`,
-   then the stack file it points to. This is the current catalog.
-2. **Bundled copy** - if the fetch fails, read `../../registry/<stack>.json` relative to
-   this skill and **say the date out loud**: "Using a catalog from `<synced_at>`; it may
-   be out of date." A stale catalog presented as current is worse than no catalog.
-3. **Live search** - stack not in the registry: search, show what you found, and offer to
-   open an issue so the next person gets it from the catalog.
-
-**Never invent an install command, a skill name or a repository.** If the registry marks
-an entry `needs_verification: true`, repeat that caveat to the user before recommending it.
-
-### Step 3 - Recommend skills
-
-For each applicable entry, in one line each: what it covers, who publishes it
-(framework team, vendor, or community - this changes how much to trust it), and the exact
-install command.
-
-Then state the **gaps**: what these skills do not cover for this stack, from `gap_map`.
-This is the part nobody else tells the user.
-
-**Do not run installs without explicit approval.** Present the command; the user decides.
-Check what is already installed first and do not re-recommend it.
-
-In `guided` mode this whole step is one line at most, and often zero: a user who asked for
-a nice-looking site does not want a catalogue of plugins. Apply the doctrine from the
-registry yourself and stay quiet about where it came from unless asked.
-
-### Step 4 - Project CLAUDE.md
-
-Generate or update `CLAUDE.md` from `../../templates/CLAUDE.md.template`, which is the
-**core only**. Optional blocks live in `../../templates/CLAUDE.sections.md` and are added
-only when their stated condition is met - never as scaffolding to fill in later. An
-unfilled section spends lines against the cap and teaches nobody anything.
-
-- **Hard cap: 150 lines.** A hook enforces it. A `CLAUDE.md` past that size stops being
-  read carefully, so an over-long one silently loses the rules you cared about most.
-- Include only what cannot be inferred from the code: build and test commands, branch
-  conventions, architectural decisions specific to this project, behavioral rules.
-- Exclude tutorials, changelogs, generic language rules, and task notes that will rot.
-- **Write the architecture rules**, from the stack's `architecture` entry in the registry.
-  Settle the structural choice *before* Step 5, not after: `folder_strategy`, which
-  `variant` applies, and which layers are optional. Say who recommends it - a framework
-  team's own guidance is not the same as a preference. Do not add an optional layer
-  without an observed reason; that is the over-abstraction signal.
-- **Write the test rules**, from the stack's `testing.rules` and `what_not_to_test`.
-  Stack-specific only; the generic gate is already in the template.
-- **Write the stage**, and a `## Deferred` section listing what was consciously skipped
-  and which stage makes it due. An undocumented deferral is indistinguishable from an
-  oversight and gets rediscovered at the worst moment.
-- **Record landmines as you hit them**, in the same task, not afterwards. A platform trap
-  you paid for and did not write down will be paid for again. This is the only section of
-  the file that cannot be re-derived from the code, because the code looks correct right
-  up until the trap fires.
-- **The test for a line:** would removing it make a future contributor pick the wrong
-  file, command, or limit? If not, it does not belong.
-- Large projects: split by domain (`backend/CLAUDE.md`, `frontend/CLAUDE.md`) using
-  `../../templates/CLAUDE.sub.md.template`, chained from the root with `@path` imports.
-- Personal preferences go in `CLAUDE.local.md`, which is exempt from the cap and
-  gitignored.
-
-**Portability:** other agents do not resolve `@` imports. To export, inline every
-imported file in place and write the result to `AGENTS.md`:
-
-```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/flatten_claude_md.py" --root . --out AGENTS.md
-```
-
-### Step 5 - Execute the task (delegated)
-
-The official skill does the work. Your job here is that it runs with the right skills
-loaded and under the behavioral rules. Do not reimplement what a framework-team skill
-already does - you will do it worse and the user will maintain the difference.
-
-Enforce, from `references/behavioral-rules.md`: simplest thing that works, surgical
-changes only, verifiable success criteria before you start.
-
-**On any front-end or mobile work, raise the async states as the feature is built, not at
-the gate afterwards.** Every asynchronous operation a user can see needs loading, empty,
-error and success - retrofitting the three that are missing means reworking the component,
-while deciding them up front costs nothing. The first time it comes up in a project, agree
-the loading affordance with the user - a progress bar with a percentage where progress is
-determinate, a skeleton or spinner where it is not - and write the answer into `CLAUDE.md`
-so it is settled once instead of per screen.
-
-### Step 6 - Quality and delivery gates
-
-Full doctrine in `references/quality-gate.md`. The two rules that never bend:
-
-- **Behavior changed** - logic, business rules, state, an API contract - **then a test is
-  new or updated, or the gate fails.** Moving a file or changing a color needs no new
-  test; the existing suite staying green is enough.
-- **Run the whole suite at the end of every task and report the real result.** Never say
-  "done" without a run. If it fails, fix it or say so. Never omit it.
-- **If it has a screen, run it and look at it.** A green suite proves what you thought to
-  assert; a rendered screen shows what you did not. Build succeeding is not running, and
-  running is not looking. If you cannot launch it, say the visual result is unverified.
-
-Use the stack's `testing` entry, not only the generic doctrine: `layers[].belongs_here`
-decides where a new test goes, `signal_you_picked_wrong` tells you when it sits at the
-wrong layer, `traps` lists how tests lie in this stack, and `what_not_to_test` is what
-keeps the suite from filling with maintenance that buys nothing.
-
-**Then the delivery gates**, from `references/delivery-gates.md`. Tests prove the code
-does what you meant; these ask what happens when it does not. Run only the gates the
-change touches, and only at the stage the project is in - the due table in that file is
-the filter, and a gate demanded at the wrong stage is noise that gets the mentor muted.
-
-The one to run every time: **for each new call that leaves the process, what is the
-failure policy?** Retry with a bound, degrade, fail loudly, or queue. Agents write happy
-paths by default. If the honest answer is "not yet", write it into `## Deferred` with the
-stage that makes it due, rather than leaving it unresolved.
-
-Before calling a task complete, re-read the stack's `gap_map`. If the official skill does
-not cover testing for this stack - most of them do not - the gap is yours to fill.
-
-### Step 7 - Growth signals
-
-Check the thresholds in `references/growth-signals.md` against the stack's
-`growth_thresholds`. Raise at most the two most valuable signals; a wall of findings gets
-skimmed and then ignored.
-
-**Every signal needs evidence: `file:line`, a count, or a measurement.** No evidence, no
-recommendation. Recommending a refactor because a pattern is fashionable is the failure
-mode this rule exists to prevent.
-
-### Step 8 - Status block
-
-End **every** intervention with a footer, and nothing after it. Which footer depends on
-the mode, because a skills inventory means nothing to someone who asked for a website.
-
-**`guided`:**
-
-```
-🧭 Built with <stack>. Decided for you: <two or three, plainly worded>.
-   Want any of that changed, or the technical detail? Just ask.
-```
-
-**`technical`:**
-
-```
-🧭 Active skills: <list>
-   Available: /mentor-review (deep audit) · /mentor-clean (dead code)
-   Suggested: <skill> — <the one-line gap it fills>
-```
-
-Drop the third line when there is nothing to suggest. Never more than three lines. Never
-mid-answer. It is a footer, not a section.
-
-## Sibling skills
-
-- **`/mentor-review`** - deep audit on demand. Teaching mode: it explains concepts the
-  user may not know and proposes structural change.
-- **`/mentor-clean`** - dead code removal under plan / validate / execute / verify. It
-  cannot delete anything without a validated plan and explicit approval.
-
-## Language
-
-Answer in the language the user writes in. Repository artifacts - code, comments,
-`CLAUDE.md`, commit messages - stay in English.
+On later runs, **read the project's `CLAUDE.md` instead of re-reading this skill's
+registry** unless you need something it does not cover. It is the same doctrine already
+compiled for this codebase.

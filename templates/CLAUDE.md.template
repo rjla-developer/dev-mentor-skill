@@ -1,25 +1,18 @@
 <!--
-  Root CLAUDE.md. Hard cap: 150 lines, enforced by hooks/validate_claude_md.py.
+  Root CLAUDE.md. Keep it under 150 lines - past that it stops being read carefully.
 
-  This file is the CORE only - what every project needs. Optional sections live in
-  templates/CLAUDE.sections.md and are added ONLY when they apply to this project.
-  A template that arrives full invites filling gaps with filler, which is the exact
-  failure the cap exists to prevent.
+  Write it BEFORE the code, so the rules constrain the work instead of describing it.
 
-  mentor_mode: guided
-  Set to `technical` to be consulted on stack and architecture decisions instead of
-  having them made and declared.
+  Include only what cannot be inferred by reading the code. The test for every line:
+  would removing it make someone pick the wrong file, command, or limit? If not, cut it.
+  Never include tutorials, changelogs, generic language rules, or notes that will rot.
 
-  The test for every line: would removing it make someone pick the wrong file, command,
-  or limit? If not, delete it. Never include tutorials, changelogs, generic language
-  rules, or task notes that will rot.
+  Replace every {{PLACEHOLDER}} and delete what does not apply.
 -->
 
 # {{PROJECT_NAME}}
 
 {{ONE_SENTENCE_WHAT_THIS_IS}}
-
-Stage: **{{STAGE}}** — {{WHAT_THAT_MEANS_HERE}}
 
 ## Stack
 
@@ -41,35 +34,44 @@ Run these exactly; do not substitute equivalents.
 
 {{WHERE_THINGS_LIVE_IN_3_TO_6_LINES}}
 
-Structure: {{FOLDER_STRATEGY}} — {{WHY_THIS_STRATEGY}}
+Structure: {{FOLDER_STRATEGY}}, recommended by {{WHO_RECOMMENDS_IT}}.
 
 ## Architectural rules
 
-<!-- From the stack's `architecture.rules`. Every line must be checkable by reading the
-     code: "domain imports no SDK" is a rule, "keep it clean" is not. -->
+<!-- From the stack's `architecture.rules`. Every line checkable by reading the code:
+     "the domain imports no SDK" is a rule, "keep it clean" is not. -->
 
 - {{ARCHITECTURE_RULE_1}}
 - {{ARCHITECTURE_RULE_2}}
+- Do not add {{OPTIONAL_LAYER}} until {{THE_OBSERVED_REASON_THAT_WOULD_JUSTIFY_IT}}.
+
+## Domain rules
+
+<!-- The product rules with their exact bounds. Change them only on request, and update
+     the tests in the same change. -->
+
+- {{RULE_WITH_ITS_EXACT_BOUNDARY}} — tested in {{TEST_FILE}}
 
 ## Quality gate
 
-- **Behavior changed** — a business rule, a contract, state — **then a test is written or
-  updated.** Moving a file or changing a colour does not need a new test.
-- **Run `{{TEST_COMMAND}}` at the end of every task and report the real result.** Never
-  claim done without running it.
-- No coverage targets. A test earns its place by being behavioral, specific,
-  deterministic and non-duplicative.
-- {{STACK_TEST_RULE}}
+- **Behavior changed** — a business rule, a contract, what the user sees — **then a test is
+  written or updated**, covering the exact boundary from both sides.
+- **Run `{{TEST_COMMAND}}` at the end of every task and report the real output.** Never
+  claim done without it.
+- **If it has a screen, launch it and look.** A green suite proves what you thought to
+  assert. If you cannot launch it, render the changed screens at 320 and 360 logical pixels
+  instead, and say the visual result is unverified.
+- No coverage targets.
 
-## Behavioral rules
+## Known landmines
 
-- **Think before coding.** State assumptions; declare the reading you took.
-- **Simplicity first.** No speculative generality, no abstraction with one implementation.
-- **Surgical changes.** Change what the task requires; nothing adjacent.
-- **Goal-directed execution.** Verifiable success criteria before starting.
+<!-- Platform and library traps already paid for. Append the moment one is found, during
+     the task. This is the only section that cannot be re-derived from the code. -->
+
+- {{LANDMINE}} — {{WHAT_IT_BREAKS}} — {{WHAT_TO_DO_INSTEAD}}
 
 ## Never
 
 - {{NEVER_1}}
-- Delete a file because it looks unused. Removal happens through a written plan listing
-  the evidence of non-use, and only after the suite passes.
+- Delete a file because it looks unused. Removal needs written evidence of non-use and a
+  passing suite.

@@ -1,10 +1,8 @@
 name: validate
 
-# Known artifact: on a pull request opened by the sync job, this workflow shows a red X
-# with zero jobs. That is GitHub's anti-recursion rule - an event raised with
-# GITHUB_TOKEN does not trigger workflows - not a failure of these checks. The sync PR's
-# content is validated twice regardless: inside sync-registry.yml before the PR is
-# opened, and by the push-to-main run after it merges. Do not chase it.
+# Known artifact: a pull request opened by the sync job shows a red X with zero jobs.
+# That is GitHub declining to trigger workflows for an event raised with GITHUB_TOKEN,
+# not a failing check. Do not chase it.
 
 on:
   push:
@@ -33,29 +31,6 @@ jobs:
 
       - name: Validate the skills
         run: python3 scripts/validate_skills.py
-
-      - name: Check that the plan scripts run
-        run: |
-          python3 skills/mentor-clean/scripts/build_cleanup_plan.py --help > /dev/null
-          python3 skills/mentor-clean/scripts/validate_cleanup_plan.py --help > /dev/null
-          python3 scripts/flatten_claude_md.py --help > /dev/null
-
-      - name: Test the CLAUDE.md line-cap hook
-        run: |
-          set -e
-          work=$(mktemp -d)
-          python3 -c "open('$work/CLAUDE.md','w').write('x\n'*151)"
-          printf '{"tool_input":{"file_path":"%s/CLAUDE.md"}}' "$work" > "$work/payload.json"
-          set +e
-          python3 hooks/validate_claude_md.py < "$work/payload.json" > /dev/null 2>&1
-          over=$?
-          python3 -c "open('$work/CLAUDE.md','w').write('x\n'*100)"
-          python3 hooks/validate_claude_md.py < "$work/payload.json" > /dev/null 2>&1
-          under=$?
-          set -e
-          if [ "$over" != "2" ]; then echo "hook did not block a 151-line CLAUDE.md (exit $over)"; exit 1; fi
-          if [ "$under" != "0" ]; then echo "hook blocked a 100-line CLAUDE.md (exit $under)"; exit 1; fi
-          echo "hook behaves correctly on both sides of the cap"
 
       - name: Check every eval scenario parses and declares expectations
         run: |

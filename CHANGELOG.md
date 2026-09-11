@@ -35,6 +35,44 @@ skills. Where a change was caused by an observed failure, the failure is named.
 - `sync_registry.py` reformatted the whole of `index.json` on every run, turning a
   one-line change into a 129-line diff. The weekly pull request exists to be read.
 
+## 1.0.0 — the version that only claims what the evidence supports
+
+Cut from nine capabilities to two. Five measured experiments are in
+`docs/DEMO-COMPARISON.md`; they supported the architecture pillar and the testing pillar,
+and did not support the rest.
+
+### Removed
+
+`mentor-review` and `mentor-clean` — never invoked once in five experiments. The seven
+reference files, including growth signals, delivery gates, project stage and the mentoring
+voice. The `guided`/`technical` modes. The three-line status block. The `CLAUDE.md` line-cap
+hook and the `AGENTS.md` flattener.
+
+**Why, in one sentence: ten doctrines dilute the one that matters.** The rule "ask when a
+decision is expensive to reverse and only the user can answer it" was written, correct, and
+buried among nine others — and a run walked straight past it, deciding on its own that a
+feature belonged on a different platform entirely. The rule is now third from the top of a
+112-line file, with nothing competing.
+
+### Kept
+
+The registry, unchanged: eight stacks with architecture verified against each framework
+team's own documentation, stack-specific test rules and traps, and the decisions each stack
+forces. This is the asset — it cost research, not code.
+
+The `CLAUDE.md` generation, as the mechanism that makes the architecture rules persist in
+the project after the skill is gone.
+
+### Added
+
+**One question before building.** If it is not obvious which platform, project or layer a
+request belongs to, ask — once. Written from the failure above.
+
+**Presentation rules as a first-class test subject**, alongside business rules, with the
+requirement to launch the app and look at the screen, and the fallbacks for when that is
+not possible: real device widths in a throwaway test, another target, retry once before
+believing a tooling error.
+
 ## Unreleased
 
 ### Changed
