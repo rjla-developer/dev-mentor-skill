@@ -53,3 +53,68 @@ Se publican aunque fallen. Las cuatro anteriores fallaron.
    stack — el HTML es idéntico con directiva y sin ella — y hace falta un navegador para
    atraparla. Si alguno lo prueba, es el hallazgo del experimento.
 4. **El `CLAUDE.md` va a ser el criterio que más separe**, porque es binario: existe o no.
+
+
+---
+
+# Resultado — funcionalidad 1: el sitio
+
+## Los tres criterios
+
+| | Sin skill | Con skill |
+|---|---|---|
+| **1. `CLAUDE.md`** | **ninguno** | **115 líneas, escrito ANTES del código** — con los bordes exactos, las decisiones forzadas y cinco minas |
+| **2. Pruebas** | **8** (node:test) | **97**: 45 vitest (reglas + Container API) + 52 Playwright contra el build de producción |
+| **3. Arquitectura del equipo** | improvisó una estructura razonable | trajo el registro en vivo, declaró tres decisiones forzadas con su coste, y usó la **Container API** y el **"probar contra producción"** que Astro publica |
+
+Otros números: 16,3 KB de JavaScript contra 13,3 KB. Defectos visuales encontrados: 2 contra 5.
+
+## La predicción que falló, y es el hallazgo
+
+Escrito antes de las corridas:
+
+> *"Ninguno de los dos va a probar que la isla hidrata. Es la trampa registrada del stack
+> — el HTML es idéntico con directiva y sin ella — y hace falta un navegador para
+> atraparla. Si alguno lo prueba, es el hallazgo del experimento."*
+
+**Falsa.** El lado con skill escribió 52 tests de Playwright contra el build de
+producción con esa frase exacta como motivo: *"la capa que nadie más puede cubrir — que
+el script realmente se enganche en un navegador"*.
+
+Y ahí encontró cinco defectos que 97 tests verdes no veían:
+
+1. El `<fieldset>` desbordaba la página a 320px — arranca con `min-inline-size: min-content`
+2. `/cotizar/` no tenía `h1` — una página hecha para Google sin encabezado principal
+3. El héroe arrancaba 170px más adentro que el encabezado (`margin-inline: auto` heredado)
+4. La burbuja de WhatsApp tapaba un botón "+" en móvil
+5. El botón deshabilitado era gris sobre gris, ~1.4:1 — se leía como error
+
+La trampa que el registro advertía se atrapó **porque el registro la advertía**.
+
+## Las otras tres predicciones
+
+- **"Los dos acertarán el modo estático"** — correcta, y sin mérito: es el default.
+- **"La diferencia estará en el `client:*`"** — parcialmente falsa, por una razón que no
+  contemplé: **ninguno de los dos usó una isla con directiva.** Los dos resolvieron el
+  cotizador con un `<script>` dentro de un `.astro`, que es el mecanismo de Astro para
+  JavaScript vanilla y no necesita directiva. El lado con skill además lo justificó:
+  *"React habría costado ~45 KB de runtime para unos steppers"*.
+- **"El `CLAUDE.md` será lo que más separe"** — correcta. Es binario.
+
+## Lo que NO mejoró, y el usuario lo notó primero
+
+**El diseño es prácticamente el mismo.** Los dos sitios se ven igual. La skill tiene dos
+pilares y ninguno es diseño; no lo prometía y no lo entrega.
+
+## Variable no controlada
+
+**Los dos lados corrieron versiones distintas de Astro: 5.18.2 sin skill, 7.3.2 con
+skill.** Ninguno de los dos prompts fijaba versión. Es un salto de dos mayores, así que
+parte de la diferencia en la API disponible —la Container API entre ellas— puede venir de
+ahí y no de la skill. Para la siguiente funcionalidad hay que fijar la versión en ambos.
+
+## Artefacto del método, otra vez
+
+El prompt volvió a llegar cortado (`"con 5 sesioete."`) en **ambos** lados por igual. Los
+dos lo detectaron y lo resolvieron por aritmética. Es la tercera vez que la copia desde
+el chat corrompe una regla.
