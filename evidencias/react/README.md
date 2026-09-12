@@ -118,3 +118,74 @@ ahí y no de la skill. Para la siguiente funcionalidad hay que fijar la versión
 El prompt volvió a llegar cortado (`"con 5 sesioete."`) en **ambos** lados por igual. Los
 dos lo detectaron y lo resolvieron por aritmética. Es la tercera vez que la copia desde
 el chat corrompe una regla.
+
+
+---
+
+# Resultado — funcionalidad 2: el hero de scrollytelling
+
+Fase de análisis, antes de construir. El encargo pedía cuatro respuestas medidas y una
+pausa. **Los dos pararon donde se les pidió.**
+
+## Lo que ambos hicieron igual, y es mucho
+
+Esta es la pareja de salidas más fuerte de toda la serie, y la convergencia importa tanto
+como la diferencia:
+
+- **Los dos corrigieron `flipY`** al usuario. Montaron el banco, probaron las dos
+  variantes, y llegaron a la misma causa: `GLTFLoader` deja la textura del GLB en
+  `flipY = false` mientras `CanvasTexture` nace en `true`. Los dos reconciliaron la
+  medición del usuario en vez de descartarla.
+- **Los dos investigaron los 146 µs** de `getPointAtLength` en lugar de aceptarlos o
+  rechazarlos, y los dos descubrieron que el coste escala con el número de curvas.
+- **Los dos propusieron la misma optimización**: partir el path por tramos y muestrear
+  sólo el activo.
+- **Los dos descartaron el vídeo** con las cuatro variantes medidas, no de oído.
+- **Los dos atraparon al menos un artefacto de medición propio.**
+
+## Donde se separaron
+
+| | Sin skill | Con skill |
+|---|---|---|
+| Tokens | **66k** | 88k (+33%) |
+| Artefactos propios atrapados | 1 | **2** |
+| Resultados negativos medidos | 0 | **2** — recorte (−11%, no −38%) y atlas 2048 (ruido) |
+| Profundidad en `getPointAtLength` | por tramo (~40 µs/pierna) | **por cúbica (~29 µs)**, aislado contra longitud |
+| La premisa del encargo | trabajó dentro de ella | **la rechazó con medición** |
+| Se negó a comprometer un número | no | **sí** — "el hero a ~2000 px no lo medí… acabo de fallar una" |
+
+### El rechazo de premisa
+
+El lado con skill: *"Tu regla de 25–50 px/frame no aplica aquí, y es el hallazgo que más
+cambia el proyecto."* El razonamiento: esa regla es para secuencias donde el frame
+codifica **traslación**. Aquí la traslación la da `drawImage` moviéndose por el path, y el
+frame sólo codifica **rotación** — así que los frames se reutilizan y su número se
+desacopla de la longitud del pin. Sustituyó la heurística prestada por una medida: p95 de
+desplazamiento de silueta por paso angular.
+
+El lado sin skill **también** vio la reutilización (*"se reutilizan 3 veces"*), pero
+siguió presupuestando en px/frame como pedía el encargo.
+
+### Y algo que sólo hizo el lado sin skill
+
+**Verificó empíricamente la premisa de la muesca de rueda.** Recortó la llanta del render,
+la midió a tamaño real (61 px CSS de diámetro, 191 px de circunferencia) y encontró que el
+rin de este modelo es un anillo concéntrico: **no hay señal rotacional**. Girándolo no
+cambia nada. El lado con skill trató el tema de las ruedas, pero por razonamiento, no
+midiendo.
+
+## Sobre el coste en tokens
+
++33% compró: un artefacto de medición extra atrapado, dos callejones descartados con
+número, y un nivel más de profundidad en el diagnóstico. Unos 10k de la diferencia es la
+carga de doctrina; el resto son mediciones adicionales. **Barato contra una hora de
+ingeniería** — el coste sólo importaría si no hubiera comprado nada.
+
+Con N=1 parte de esa diferencia es varianza, no skill.
+
+## Artefacto del método, cuarta vez
+
+El prompt volvió a llegar corrupto en **ambos** lados por igual: `"Corte, ba?gún el tipo de
+pelo"`, `"Autoriza el atlas a 20 1024"`, `"precarga en DOS pasadago"`. La comparación se
+sostiene porque la corrupción es idéntica, pero copiar prompts largos desde el chat rompe
+texto de forma fiable. Para la siguiente, pasarlo por archivo.
