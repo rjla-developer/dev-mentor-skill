@@ -275,3 +275,86 @@ apareció sólo al ejecutarla.
 Ninguno de los dos hizo commit. Los dos quedan pendientes de: que el lado con skill mida
 fotograma y heap, y que el lado sin skill escriba las pruebas del motor y limpie los 4,8 MB
 de assets que no se sirven.
+
+
+---
+
+# Resultado final — De Pocas Pulgas, dos funcionalidades
+
+Medido sobre el código en disco, no sobre los resúmenes.
+
+## Los tres criterios
+
+| | Sin skill | Con skill |
+|---|---|---|
+| **1. `CLAUDE.md`** | **no existe** | **208 líneas** — bordes exactos, decisiones con su coste, y las trampas de medir memoria en Chromium |
+| **2. Pruebas** | 54 casos · 653 líneas · 3 archivos | **127 casos · 1.281 líneas · 9 archivos** |
+| **3. Arquitectura del equipo** | estructura razonable, improvisada | registro en vivo, decisiones declaradas, Container API y "probar contra producción" que Astro publica |
+
+Y lo demás medible:
+
+| | Sin skill | Con skill |
+|---|---|---|
+| Líneas de `src/` | 3.191 | **2.948** |
+| Assets servidos | 2,1 MB | **1,0 MB** |
+| Transferencia del hero | 1.297 KB | **922 KB** |
+
+## Donde la baseline ganó, y es la segunda ronda seguida
+
+| | Sin skill | Con skill |
+|---|---|---|
+| Función más larga | **197** líneas | **258** líneas |
+| Archivo más grande | **545** líneas | **627** líneas |
+| Bloques duplicados | 1 | 1 (empate) |
+
+Esto contradice la tendencia de Flutter, donde la forma del código se separaba a favor de
+la skill en cada feature. Aquí **la baseline salió por delante en las dos métricas de
+forma**, y no por poco: 258 líneas en una sola función es el doble de cualquier umbral
+razonable.
+
+Peor: esa función vive **dentro del `<script>` del componente**
+(`HeroPulgomovil.astro:arrancar`), mientras la baseline sacó su motor a archivos aparte en
+`src/scripts/`. La skill separó bien las *reglas* (`src/lib/recorrido.ts`) y dejó el motor
+pegado a la pantalla.
+
+Y no lo reportó. En rondas anteriores la skill decía "ninguna señal cruza umbral" tras
+contar; aquí no mencionó señales de crecimiento en absoluto.
+
+## Las dos mediciones finales, que son de distinta calidad
+
+**Con skill** midió el fotograma con `mouse.wheel` real —no `scrollTo`, porque *"saltar el
+scroll se salta justo el trabajo que se quiere medir"*— parcheando la callback de rAF antes
+de que cargue el módulo. Cuatro escenarios con CPU throttling a 4× y 6×, 219–233 muestras
+cada uno. **Ni un fotograma por encima de presupuesto en ninguno.**
+
+Y corrigió un error propio de 25×: sospechó un problema de memoria (121,6 MB sobre el papel
+para 41 cuadros RGBA), el primer A/B sucio pareció confirmarlo (89 contra 200 MB), y al
+aislarlo los deltas salían negativos contra su propia línea base. Tres instrumentos
+después: **Chrome no guarda esos bitmaps como RGBA residente; el coste real es ~5 MB.**
+
+Además se negó a dar un número: *"el intervalo entre fotogramas no te lo doy como prueba —
+sale 16.7 clavado, que es la cadencia sintética de headless, no 60 fps en un teléfono"*.
+
+**Sin skill** midió el fotograma en el build servido y reportó mediana 16,6 ms y p95 18,0,
+sin decir con qué método movió el scroll ni si había throttling. Números útiles, menos
+instrumentados.
+
+## Lo que la baseline encontró y nadie más
+
+Al escribir las 46 pruebas que le faltaban, **una falló de verdad**: 180° no son un número
+entero de cuadros de 8° (son 22,5), así que las paradas pares caen en el cuadro 32 —256°—
+en vez de su pose nominal de 252°. **Cuatro grados de desvío sistemático**, invisible a
+ojo, que ahora está escrito en una prueba y en el README.
+
+Es el argumento del pilar 2 en una frase: **las pruebas no se escriben para que pasen, se
+escriben para que una falle.**
+
+## Balance de la serie
+
+Dos rondas seguidas con inversiones. La forma del código fue a favor de la baseline aquí, y
+el rendimiento en vivo estuvo mejor instrumentado del lado de la skill — lo contrario de la
+ronda anterior.
+
+**Con N=1 por ronda, eso es varianza, no señal.** Lo único que se sostiene en las siete
+comparaciones de la serie es el `CLAUDE.md`: existe o no existe, y ese resultado no se ha
+movido nunca.
