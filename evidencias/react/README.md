@@ -189,3 +189,89 @@ El prompt volvió a llegar corrupto en **ambos** lados por igual: `"Corte, ba?g�
 pelo"`, `"Autoriza el atlas a 20 1024"`, `"precarga en DOS pasadago"`. La comparación se
 sostiene porque la corrupción es idéntica, pero copiar prompts largos desde el chat rompe
 texto de forma fiable. Para la siguiente, pasarlo por archivo.
+
+
+---
+
+# Resultado — funcionalidad 2, construcción
+
+Los dos terminaron. El transcript del lado sin skill repite un párrafo tres veces, pero
+es un artefacto de la terminal: el disco confirma componente, pipeline, motor e
+`index.astro` modificado en ambos.
+
+## Lo que dice el disco, que los resúmenes no
+
+| | Sin skill | Con skill |
+|---|---|---|
+| Archivos de test | **1** — el del cotizador, sin tocar | **7** — dos nuevos: `recorrido.test.ts`, `pulgomovil.spec.ts` |
+| Pruebas totales | 8 (las de antes) | **177** (95 Vitest + 82 Playwright) |
+| `CLAUDE.md` | **sin modificar** | **actualizado** |
+| Frames en disco | 274 · **6,1 MB** | 86 · **2,0 MB** |
+| Transferencia | 1.297 KB | **922 KB** |
+
+**El lado sin skill entregó un motor de scrollytelling con cero pruebas nuevas.** Es el
+fallo que el criterio 2 existe para atrapar, y es el más grande de toda la serie: no es
+"menos pruebas", es ninguna.
+
+Y 6,1 MB de assets versionados contra 1,3 MB servidos: guardó tamaños que no se sirven.
+
+## La inversión
+
+**El lado sin skill midió el producto corriendo. El lado con skill probó las reglas.
+Ninguno hizo las dos cosas.**
+
+Sin skill trae la cifra que de verdad manda en un scrollytelling: fotograma mediano
+**16,6 ms**, p95 **18,0**, en el build servido. El presupuesto de 60 fps son 16,7 ms — está
+en el filo. También heap (2 MB), transferencia por dispositivo, y verificó que
+`prefers-reduced-motion` descarga cero frames.
+
+Con skill no reporta ni fotograma ni heap. Tiene 177 pruebas y ninguna cifra de
+rendimiento en vivo.
+
+Es una inversión respecto a las rondas 1 a 4, donde el patrón era el contrario. Con N=1 por
+ronda, esto es un recordatorio de que la varianza entre corridas es real.
+
+## La desviación de stack, declarada
+
+El lado con skill **no usó GSAP/ScrollTrigger**, que el encargo pedía en el stack. Usó
+`position: sticky` más un manejador de scroll, ~40 líneas.
+
+Dos razones dadas: el `CLAUDE.md` del proyecto ya rechaza runtime de cliente con ese
+argumento, y —la que decide— **con GSAP en el bundle, `prefers-reduced-motion` y
+`Save-Data` descargarían la librería igual**, lo que contradice el requisito de
+degradación del mismo encargo. Lo anotó en la tabla de decisiones con su coste y ofreció
+revertirlo.
+
+Dos requisitos del encargo chocaban. Eligió el que beneficia al usuario, lo declaró y dejó
+la puerta abierta. Eso es empujar de vuelta con fundamento.
+
+**Y es el `CLAUDE.md` componiendo**: la decisión se justificó citando una regla que la
+funcionalidad anterior había escrito en el proyecto. Es la primera vez en la serie que se
+observa ese efecto de forma explícita.
+
+## Convergencia técnica, otra vez
+
+- **Los dos corrigieron `flipY`** y llegaron a la misma causa.
+- **Los dos rechazaron pintar el rótulo por coordenadas sobre el atlas**, por la misma
+  razón medida —el desempaquetado está troceado dentro de cada región— y los dos se
+  fueron a proyección 3D.
+- **Los dos resolvieron la premisa rota de la rueda.** Sin skill fue más lejos: midió que
+  el rin del modelo son anillos concéntricos y que desenfocarlo angularmente **no cambia un
+  píxel**, así que dibujó un rin de seis radios y le horneó el arrastre promediando 16
+  copias sobre 30°.
+
+## Un hallazgo nuevo, sólo del lado con skill
+
+`img.decode()` **nunca se resuelve** con estos WebP con alfa en Chrome, ni adjuntando la
+imagen al DOM: la precarga se quedaba clavada en cuatro cuadros sin un error en consola.
+Lo reemplazó por `fetch` + `createImageBitmap`, que además decodifica fuera del hilo
+principal.
+
+Es una contradicción directa a una de las técnicas que el encargo daba por resuelta, y
+apareció sólo al ejecutarla.
+
+## Estado
+
+Ninguno de los dos hizo commit. Los dos quedan pendientes de: que el lado con skill mida
+fotograma y heap, y que el lado sin skill escriba las pruebas del motor y limpie los 4,8 MB
+de assets que no se sirven.
