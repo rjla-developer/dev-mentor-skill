@@ -55,7 +55,7 @@ recorded, with the numbers.
 ## The registry
 
 The catalogue lives outside the skill and is fetched at run time, so a merged pull request
-reaches every user without anyone reinstalling anything. Eight stacks: Flutter, Next.js,
+reaches every user without anyone reinstalling anything. Nine stacks: Flutter, Next.js, Astro,
 Angular, React Native/Expo, NestJS, FastAPI, Spring Boot, .NET.
 
 Each carries the architecture its framework team recommends, the test rules and traps
@@ -67,7 +67,7 @@ specific to that stack, and the decisions the stack forces with no default. See
 This catalogue ages fast — official teams publish every week, commands change, repositories
 move. **Fork it, change it, send the pull request.**
 
-- 22 stacks waiting, with a template: [docs/ROADMAP.md](docs/ROADMAP.md)
+- 21 stacks waiting, with a template: [docs/ROADMAP.md](docs/ROADMAP.md)
 - A threshold that is wrong for real code: change it, with the evidence
 - A command that no longer works: [report it](.github/ISSUE_TEMPLATE/stale-skill.yml)
 

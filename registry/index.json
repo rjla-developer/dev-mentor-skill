@@ -20,6 +20,14 @@
       "has_framework_team_skill": false
     },
     {
+      "stack": "astro",
+      "display_name": "Astro",
+      "category": "frontend",
+      "file": "astro.json",
+      "last_verified": "2026-09-11",
+      "has_framework_team_skill": true
+    },
+    {
       "stack": "angular",
       "display_name": "Angular",
       "category": "frontend",

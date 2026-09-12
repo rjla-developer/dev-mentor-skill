@@ -1,0 +1,266 @@
+{
+  "stack": "astro",
+  "display_name": "Astro",
+  "category": "frontend",
+  "detection": {
+    "files": [
+      "astro.config.mjs",
+      "astro.config.ts",
+      "astro.config.js",
+      "package.json"
+    ],
+    "markers": [
+      "\"astro\":",
+      "defineConfig",
+      "---\n"
+    ]
+  },
+  "last_verified": "2026-09-11",
+  "official_skills": [
+    {
+      "id": "withastro/docs-mcp",
+      "owner": "Astro team",
+      "owner_kind": "framework-team",
+      "install": null,
+      "covers": [
+        "live documentation lookup"
+      ],
+      "does_not_cover": [
+        "architecture decisions",
+        "testing strategy",
+        "project structure"
+      ],
+      "source_url": "https://github.com/withastro/docs-mcp",
+      "needs_verification": true,
+      "notes": "NOT a skill - it is an MCP server that serves Astro documentation on demand. Recorded here because it is the Astro team's only agent-facing artifact for people building with Astro, and the mentor should say it exists. The install route was not confirmed on 2026-09-11."
+    },
+    {
+      "id": "delineas/astro-framework-agents",
+      "owner": "delineas",
+      "owner_kind": "community",
+      "install": null,
+      "covers": [
+        "islands-architecture",
+        "content-collections",
+        "ssr-adapters",
+        "view-transitions"
+      ],
+      "does_not_cover": [
+        "testing strategy"
+      ],
+      "source_url": "https://github.com/delineas/astro-framework-agents",
+      "needs_verification": true,
+      "notes": "Community, not the Astro team. 44 stars on 2026-09-11. Install route unconfirmed. Present it as an option with that caveat, never as doctrine."
+    }
+  ],
+  "gap_map": [
+    {
+      "gap": "skills for people building WITH Astro",
+      "why_it_matters": "The withastro org publishes 22 SKILL.md files and every one of them is maintainer tooling - triage, releases, changesets, PR review, and an astro-developer skill whose own description says 'developing in the Astro monorepo'. None teaches you to build a site. Aggregator sites list these as 'Astro skills', which is how a search leads you to install contributor tooling.",
+      "filled_by": null,
+      "fallback": "The mentor applies the architecture block below, which is verified against the Astro team's own documentation, and says plainly that no builder-facing skill exists."
+    },
+    {
+      "gap": "test strategy",
+      "why_it_matters": "Astro documents four runners and the Container API but takes no position on what deserves a test. The stack's own failure mode makes this worse: a component can render perfectly server-side and never hydrate, so the markup assertion passes while the button does nothing.",
+      "filled_by": null,
+      "fallback": "The mentor applies the testing rules below."
+    }
+  ],
+  "testing": {
+    "layers": [
+      {
+        "name": "unit (Container API)",
+        "belongs_here": "an .astro component rendered to a string and asserted on - added in Astro 4.9.0 and the team's own answer for testing Astro components natively",
+        "does_not_belong_here": "anything that needs a browser or hydration",
+        "cost": "cheap and fast",
+        "signal_you_picked_wrong": "the assertion is about behaviour after a click"
+      },
+      {
+        "name": "island unit",
+        "belongs_here": "the React/Vue/Svelte component inside an island, tested with that framework's own tooling",
+        "does_not_belong_here": "whether the island actually hydrates on the page",
+        "cost": "moderate"
+      },
+      {
+        "name": "e2e",
+        "belongs_here": "that an island hydrates and responds to a real click, and the flows whose breakage is an incident. Playwright, Cypress and Nightwatch are all documented.",
+        "does_not_belong_here": "branch coverage",
+        "cost": "slowest; but it is the only layer that proves hydration happened"
+      }
+    ],
+    "proportions": "No proportions stated by the Astro team. They do state one rule that changes where tests run: 'Run your tests against your production code to more closely resemble your live, deployed site.'",
+    "commands": {
+      "full_suite": "npm test",
+      "e2e": "npx playwright test",
+      "typecheck": "npx astro check",
+      "build": "npm run build",
+      "preview": "npm run preview"
+    },
+    "rules": [
+      "Run tests against the production build, not the dev server. The Astro team says so explicitly, and dev and production differ in how islands are served.",
+      "Use the Container API to unit-test .astro components: render to a string and assert on the output. It is the team's own mechanism, available since 4.9.0.",
+      "At least one end-to-end test per interactive island proves it HYDRATES. Nothing below that layer can prove it - the markup is identical whether the directive is there or not.",
+      "astro check is the typecheck for .astro files. A green unit suite with a failing astro check is not a green project.",
+      "Read package.json before assuming a runner: Vitest, Playwright, Cypress and Nightwatch are all documented options."
+    ],
+    "traps": [
+      "THE Astro trap: a component that renders correctly server-side but has no client:* directive produces identical HTML to one that does. Every markup assertion passes and the button does nothing. Only a real browser catches it.",
+      "Testing against the dev server instead of the build - the team warns about this directly.",
+      "An island that works alone and breaks on the page because two islands ship two different framework runtimes.",
+      "client:visible islands never hydrate in a test viewport that never scrolls them into view, so the test reports a dead component as working-as-designed.",
+      "Content and assets in public/ are copied untouched, so a broken path there fails silently in production while every test passes."
+    ],
+    "what_not_to_test": [
+      "That Astro stripped the client JavaScript - that is the framework's contract.",
+      "That a file in src/pages became a route.",
+      "The exact HTML string of a layout; it changes on every markup edit.",
+      "Generated types in .astro/ and build output in dist/."
+    ],
+    "notes": "The Container API covers .astro components; islands are tested with their own framework's tooling. Neither proves hydration - only a browser does."
+  },
+  "growth_thresholds": {
+    "extract_shared_component": ">=3 occurrences of the same markup across >=2 pages",
+    "split_page": "an .astro page file exceeds 200 lines",
+    "review_island_budget": ">3 client:load islands on one page - client:load blocks, and shipping several defeats the reason to be on Astro at all (mentor threshold, not the Astro team's)",
+    "extract_package": ">=2 sites or apps import the same internal module"
+  },
+  "architecture": {
+    "recommended_by": "framework-team",
+    "source_url": "https://docs.astro.build/en/concepts/islands/",
+    "pattern": "islands architecture - static HTML by default, JavaScript opted into one component at a time",
+    "folder_strategy": "unspecified",
+    "layers": [
+      {
+        "name": "src/pages",
+        "holds": "the routes. Required, and the ONLY directory Astro reserves - the docs say so verbatim: 'the only directory reserved by Astro is src/pages/'",
+        "must_not": "hold anything non-routable; a file dropped here becomes a page"
+      },
+      {
+        "name": "src/components",
+        "holds": "reusable units, .astro or a UI framework component",
+        "must_not": "be treated as mandatory - the docs call it 'a common convention in Astro projects, but it is not required'"
+      },
+      {
+        "name": "src/layouts",
+        "holds": "shared UI structure wrapping pages",
+        "must_not": "hold page-specific logic; also a convention, not required"
+      },
+      {
+        "name": "client island",
+        "holds": "the interactive component, opted in with a client:* directive",
+        "must_not": "become the default - Astro strips all client JavaScript unless you explicitly ask for it, and that is the whole performance story"
+      },
+      {
+        "name": "server island",
+        "optional": true,
+        "holds": "expensive or slow server-side work deferred with server:defer so the page renders immediately around it",
+        "must_not": "exist before something is actually slow"
+      },
+      {
+        "name": "public/",
+        "holds": "assets copied untouched at build time",
+        "must_not": "hold anything that needs optimisation or processing - that goes in src/"
+      }
+    ],
+    "variants": [
+      {
+        "name": "The documented convention: components/, layouts/, styles/, images/",
+        "use_when": "the default, and what every Astro tutorial looks like",
+        "cost": "these are type-based folders, so one feature's page, component and style end up in three places"
+      },
+      {
+        "name": "Feature folders beside src/pages",
+        "use_when": "features are independent and each owns its components and styles",
+        "cost": "you leave the layout newcomers recognise from the docs"
+      },
+      {
+        "name": "Reserved-only: just src/pages, everything else however you like",
+        "use_when": "a small site, one person",
+        "cost": "nothing stops it drifting; the discipline is entirely social"
+      }
+    ],
+    "rules": [
+      "src/pages is the only directory Astro reserves. A file placed there becomes a route - never put non-routable code in it.",
+      "Everything renders to HTML with client-side JavaScript stripped automatically. A component runs in the browser ONLY if you write a client:* directive on it. The docs put the burden on you explicitly: 'it is up to you as the developer to explicitly tell Astro which components on the page need to also run in the browser'.",
+      "Every client:* directive is a decision, not a formality: client:load runs immediately, client:idle waits for the browser, client:visible waits for the viewport. Pick by when the user actually needs it.",
+      "Start with the default static output. The Astro team's own words: 'Start with the default static mode until you are sure that most or all of your pages will be rendered on demand.' Add an adapter only when a route genuinely needs it.",
+      "public/ is copied untouched. Anything that should be optimised goes in src/.",
+      "Do not add a server island until something is measurably slow. server:defer exists for expensive work, and adding it early is the over-abstraction signal."
+    ],
+    "component_library": "Promote to a shared component at >=3 occurrences across >=2 pages. On Astro the bar is lower than elsewhere for a different reason: a shared .astro component costs zero client JavaScript, so the usual 'is the abstraction worth it' tradeoff loses its performance half.",
+    "notes": "Astro prescribes routing and hydration and leaves organisation open - the same shape as Next.js. src/pages is reserved; components/, layouts/, styles/ and images/ are explicitly described as conventions that are not required. So the mentor's job is not to impose a layout, it is to make sure one is chosen, written down and followed."
+  },
+  "key_decisions": [
+    {
+      "decision": "Output mode: static or on-demand",
+      "why_it_is_forced": "Astro prerenders everything by default. Switching to output: 'server' requires an adapter and changes where the site can be deployed.",
+      "options": [
+        "static (default)",
+        "server + adapter",
+        "static with per-route prerender: false"
+      ],
+      "reasonable_default": "Static. The Astro team says to start there until you are sure most pages need on-demand rendering.",
+      "cost_of_getting_it_wrong": "Going server-first without needing it gives up the reason to be on Astro; discovering you need on-demand late means picking a host and adapter under deadline."
+    },
+    {
+      "decision": "Which UI framework runs inside the islands",
+      "why_it_is_forced": "Astro is framework-agnostic and ships none by default. React, Vue, Svelte, Solid and Preact are all first-class.",
+      "options": [
+        "none - plain .astro",
+        "React",
+        "Vue",
+        "Svelte",
+        "Solid",
+        "Preact"
+      ],
+      "reasonable_default": "None, until something is genuinely interactive. Then one - the one the team already knows.",
+      "cost_of_getting_it_wrong": "Two frameworks on one page ship two runtimes to the browser, which is exactly the cost Astro exists to avoid."
+    },
+    {
+      "decision": "Which client:* directive each island gets",
+      "why_it_is_forced": "There is no default. An island with no directive never hydrates and looks identical in the HTML.",
+      "options": [
+        "client:load",
+        "client:idle",
+        "client:visible",
+        "client:only",
+        "none"
+      ],
+      "reasonable_default": "client:visible for anything below the fold, client:idle for the rest, client:load only for something the user touches immediately.",
+      "cost_of_getting_it_wrong": "client:load on everything turns an Astro site into a slow SPA. Forgetting the directive ships a dead component that every test passes."
+    },
+    {
+      "decision": "Deployment target and adapter",
+      "why_it_is_forced": "Which on-demand features work depends on the adapter, and the adapter depends on where it runs.",
+      "options": [
+        "static host",
+        "Netlify",
+        "Vercel",
+        "Cloudflare",
+        "Node"
+      ],
+      "reasonable_default": "A static host until on-demand rendering is genuinely needed.",
+      "cost_of_getting_it_wrong": "Building on a runtime feature the chosen adapter does not support is discovered at deploy time."
+    },
+    {
+      "decision": "Where non-route code lives",
+      "why_it_is_forced": "Only src/pages is reserved. Everything else is a convention the docs describe and explicitly do not require.",
+      "options": [
+        "the documented convention (components/, layouts/, styles/)",
+        "feature folders",
+        "reserved-only"
+      ],
+      "reasonable_default": "The documented convention, so newcomers recognise it.",
+      "cost_of_getting_it_wrong": "The failure is not the wrong layout, it is an inconsistent one - half by feature and half by type, so nobody can predict where a file lives."
+    }
+  ],
+  "dead_code_risks": [
+    "Files in src/pages are routes, reachable by filesystem convention and never imported",
+    "Components referenced only from .astro templates, which import-graph tools do not follow",
+    "Assets in public/ referenced by a string path",
+    "Content collection entries discovered by directory scan",
+    "Framework islands referenced only through a client:* directive in a template",
+    "Adapter and integration code activated only by astro.config"
+  ]
+}

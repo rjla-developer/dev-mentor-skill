@@ -1,6 +1,6 @@
 # Roadmap
 
-The 22 stacks the registry does not cover yet. Every one is ready to be copied into an
+The 21 stacks the registry does not cover yet. Astro was the first entry written from a real build rather than from research alone. Every one is ready to be copied into an
 issue and picked up - each is labelled `good first contribution`, because adding a stack
 needs research and honesty rather than familiarity with this codebase.
 
@@ -47,7 +47,6 @@ starts from research instead of from nothing.
 | Svelte / SvelteKit | `sveltekit` | Filesystem routing means convention files dominate `dead_code_risks`. |
 | SwiftUI | `swiftui` | Community skills exist; verify publishers carefully before labelling one framework-team. |
 | Jetpack Compose | `jetpack-compose` | Check for a Google/Android collection. |
-| Astro | `astro` | Islands architecture changes the coupling thresholds. |
 | Solid.js | `solidjs` | Small ecosystem; an honest empty `official_skills` may be the right answer. |
 | Remix / React Router | `remix` | Overlaps `nextjs` on the React cross-cutting skills; do not duplicate them. |
 | Qwik | `qwik` | Resumability changes what an "effect cascade" means; calibrate. |
