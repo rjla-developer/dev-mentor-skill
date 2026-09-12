@@ -1,3 +1,7 @@
+> **Documento histórico.** Escrito para `dev-mentor` 0.x, con nueve capacidades.
+> Siete se borraron en 1.0.0. Para la herramienta actual, el brief vigente es
+> [`../brief-claude-design.md`](../brief-claude-design.md).
+
 # Brief para el chat de publicaciones
 
 Documento de contexto para un chat sin historial previo. Todo lo que aquí se afirma
@@ -135,8 +139,8 @@ nunca se inventa.** La CI rechaza lo contrario.
 | | Dónde |
 |---|---|
 | Documento visual con las métricas | https://claude.ai/code/artifact/07e670fe-40ec-4245-9dee-4d3be59e00da |
-| Capturas de las tres corridas | `evidencias/capturas/` (ver `MANIFIESTO.md`) |
-| Registro técnico completo | `docs/DEMO-COMPARISON.md` |
+| Capturas de las tres corridas | `capturas/` (ver `MANIFIESTO.md`) |
+| Registro técnico completo | `comparaciones-0.x.md` |
 | Repositorio | https://github.com/rjla-developer/stack-canon |
 | Video de pantalla de las corridas | lo aporta el autor |
 

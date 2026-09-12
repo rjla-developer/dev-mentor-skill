@@ -131,9 +131,9 @@ pilares y ninguno es diseño; no lo prometía y no lo entrega.
 
 | | Dónde |
 |---|---|
-| Registro técnico completo, con las derrotas | `docs/DEMO-COMPARISON.md` y `evidencias/react/README.md` |
+| Registro técnico completo, con las derrotas | `evidencias/de-pocas-pulgas/README.md` |
 | Entorno exacto de las pruebas (las 57 skills) | `evidencias/entorno.md` |
-| Capturas de las corridas de Flutter | `evidencias/capturas/` |
+| Capturas de las corridas de Flutter | `evidencias/historico-0.x/capturas/` |
 | Documento visual con las métricas de Flutter | https://claude.ai/code/artifact/07e670fe-40ec-4245-9dee-4d3be59e00da |
 | Los cuatro proyectos construidos | dos Flutter, dos Astro, en disco |
 

@@ -38,7 +38,7 @@ skills. Where a change was caused by an observed failure, the failure is named.
 ## 1.0.0 — the version that only claims what the evidence supports
 
 Cut from nine capabilities to two. Five measured experiments are in
-`docs/DEMO-COMPARISON.md`; they supported the architecture pillar and the testing pillar,
+`evidencias/historico-0.x/`; they supported the architecture pillar and the testing pillar,
 and did not support the rest.
 
 ### Removed

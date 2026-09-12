@@ -7,9 +7,9 @@ description: Applies the architecture each framework team publishes for its own 
 
 Two rules, applied every time, and one question asked before either of them.
 
-Everything else this project used to do was cut because five measured experiments did not
-support it. What survived is what did: `docs/DEMO-COMPARISON.md` has the numbers, including
-the losses.
+Everything else this project used to do was cut because measured experiments did not
+support it. What survived is what did: `evidencias/de-pocas-pulgas/` has the numbers for
+these two rules, judged against them and nothing else, losses included.
 
 ## 0. Before building: where does this live?
 

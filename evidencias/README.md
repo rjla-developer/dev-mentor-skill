@@ -1,42 +1,35 @@
 # Evidencias
 
-Bitácora de las pruebas hechas sobre `stack-canon`. Todo lo que aquí se afirma tiene
-una medición o un transcript detrás, y lo que no se midió está marcado como no medido.
+## Registro vigente
 
+**[`de-pocas-pulgas/`](de-pocas-pulgas/)** — lo único que sirve para juzgar `stack-canon`
+1.0. Una app Astro construida dos veces y una funcionalidad añadida a las dos, medida
+contra los tres criterios que la herramienta declara cumplir:
 
-> **Nota de nombre.** Los experimentos de este registro se corrieron cuando la skill se llamaba `dev-mentor`. El nombre cambió a `stack-canon` en 1.0.0, al recortar el alcance a los dos pilares que la evidencia sostiene. Los transcripts originales dicen `dev-mentor`; es la misma herramienta.
+1. **`CLAUDE.md` creado y de calidad**
+2. **Pruebas por funcionalidad que verifiquen calidad de producto**
+3. **Arquitectura y recomendaciones del equipo de la tecnología**
 
-## Qué hay
+Nada más. Si una observación no cae en uno de esos tres, no entra.
 
-| Archivo | Contiene |
-|---|---|
-| `entorno.md` | Las condiciones exactas de las pruebas. Léelo antes que nada: sin esto, ningún número de aquí significa lo que parece. |
-| `brief-linkedin.md` | Documento de contexto para dar a un chat sin historial, con los ángulos de publicación y los activos disponibles. |
-| `capturas/` | Imágenes y video de las corridas. |
-| `../docs/DEMO-COMPARISON.md` | El registro técnico completo, corrida por corrida, con las predicciones fallidas. |
+**[`entorno.md`](entorno.md)** — las condiciones exactas. Léelo antes que los números: los
+dos lados corren con 57 skills personales activas, así que esto mide valor marginal sobre
+un montaje ya bueno, no contra un Claude desnudo.
 
-## La regla de esta carpeta
+**[`brief-claude-design.md`](brief-claude-design.md)** — documento autocontenido para pasar
+a un chat sin historial.
 
-**Las derrotas se publican con el mismo detalle que las victorias.** No es modestia: es
-lo único que hace creíbles las victorias. Un lector que ve tres predicciones fallidas
-admitidas te cree la cuarta que sí salió.
+## Histórico
 
-Hasta hoy se han publicado cuatro fallos propios:
+**[`historico-0.x/`](historico-0.x/)** — cinco comparaciones contra `dev-mentor` 0.x, una
+herramienta con nueve capacidades de las que **siete se borraron**. No sirve para juzgar la
+actual. Se conserva porque justifica dos reglas vigentes y documenta por qué se recortó.
 
-1. El plugin cargaba sin su hook, y el tope de `CLAUDE.md` quedaba sin aplicar.
-2. La doctrina nunca decía "corre la app", así que una corrida entregó 68 pruebas
-   verdes y un encabezado encimado en pantalla.
-3. El mismo prompt se comportaba de dos maneras distintas porque nombrar un stack
-   sacaba a la skill de modo `guided`.
-4. Una corrida reportó "ninguna señal cruzó umbral" sin haber contado: su propio
-   `build()` estaba en 103 líneas contra un umbral de 100.
+## Las dos reglas de esta carpeta
 
-Los cuatro se corrigieron. Los cuatro salieron de una prueba, no de una revisión.
+**Se mide contra los tres criterios, y contra nada más.** Un resultado sobre una capacidad
+que ya no existe no es una derrota ni una victoria: es inexacto.
 
-## Cómo añadir un experimento
-
-1. Anota el entorno en `entorno.md` si cambió algo.
-2. Corre los dos lados con **el mismo prompt literal** y el mismo modo de permisos.
-3. Mide antes y después. Sin medición no entra.
-4. Escribe qué esperabas que pasara **antes** de mirar el resultado, y publícalo aunque
-   falle.
+**Las derrotas del tool actual se publican con el mismo detalle que las victorias.** En el
+registro vigente hay dos: la baseline ganó las métricas de forma del código, y entregó el
+mejor hallazgo individual de la serie.

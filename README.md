@@ -6,7 +6,7 @@ business rules and presentation rules are both tested *and actually looked at*.
 
 It used to do nine things. Five measured experiments supported two of them, so the rest
 was cut. The experiments — including the ones this project lost — are in
-[docs/DEMO-COMPARISON.md](docs/DEMO-COMPARISON.md).
+[evidencias/de-pocas-pulgas/](evidencias/de-pocas-pulgas/).
 
 ## Install
 

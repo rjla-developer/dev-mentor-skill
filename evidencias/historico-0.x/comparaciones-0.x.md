@@ -1,3 +1,29 @@
+> # ⚠️ Esto mide una herramienta que ya no existe
+>
+> Estas cinco comparaciones se corrieron contra **`dev-mentor` 0.x**, que tenía nueve
+> capacidades: señales de crecimiento, gates de entrega, etapas de proyecto, voz de
+> mentor, modos guided/technical, bloque de estado, `mentor-review` y `mentor-clean`.
+>
+> **En 1.0.0 se borraron siete de las nueve.** La herramienta actual —`stack-canon`— hace
+> tres cosas: preguntar una vez dónde vive algo, aplicar la arquitectura que publica el
+> equipo del framework, y exigir que las reglas de negocio y de presentación estén
+> probadas y miradas.
+>
+> Buena parte de lo que aquí se mide **no tiene equivalente en la herramienta actual**, así
+> que no sirve para juzgarla. Se conserva por dos razones concretas:
+>
+> 1. **Justifica reglas que hoy siguen vigentes.** La regla de "corre la app y mírala"
+>    existe porque una corrida de aquí entregó 68 pruebas verdes, analizador limpio y un
+>    encabezado encimado en pantalla. Sin este registro, esa regla parecería una
+>    preferencia.
+> 2. **Documenta por qué se recortó.** Siete capacidades se borraron porque siete
+>    comparaciones no las sostuvieron. Ese es el argumento del proyecto aplicado a sí
+>    mismo.
+>
+> **Para evaluar `stack-canon` hoy, el registro vigente es
+> [`../de-pocas-pulgas/README.md`](../de-pocas-pulgas/README.md)**, organizado por los tres
+> criterios que la herramienta declara cumplir.
+
 # Demo comparison log
 
 A controlled A/B of the same build task, run twice: once with the developer's normal
